@@ -11,6 +11,14 @@ import {
     Flame
 } from "lucide-react";
 
+interface Goal {
+    phases: { done: boolean }[];
+}
+
+interface Course {
+    topics: { completed: boolean }[];
+}
+
 export default function OverviewPage() {
     const [stats, setStats] = useState({
         habits: "0 / 13",
@@ -40,12 +48,12 @@ export default function OverviewPage() {
         // Goals
         const savedGoals = localStorage.getItem("emmanuel_goals");
         if (savedGoals) {
-            const goals = JSON.parse(savedGoals);
+            const goals: Goal[] = JSON.parse(savedGoals);
             let total = 0;
             let done = 0;
-            goals.forEach((g: any) => {
+            goals.forEach((g: Goal) => {
                 total += g.phases.length;
-                done += g.phases.filter((p: any) => p.done).length;
+                done += g.phases.filter((p) => p.done).length;
             });
             const pct = total > 0 ? Math.round((done / total) * 100) : 0;
             setStats(prev => ({ ...prev, goals: `${pct}%` }));
@@ -54,12 +62,12 @@ export default function OverviewPage() {
         // Courses
         const savedCourses = localStorage.getItem("emmanuel_courses");
         if (savedCourses) {
-            const courses = JSON.parse(savedCourses);
+            const courses: Course[] = JSON.parse(savedCourses);
             let total = 0;
             let done = 0;
-            courses.forEach((c: any) => {
+            courses.forEach((c: Course) => {
                 total += c.topics.length;
-                done += c.topics.filter((t: any) => t.completed).length;
+                done += c.topics.filter((t) => t.completed).length;
             });
             setStats(prev => ({ ...prev, topics: `${done} / ${total}` }));
         }
