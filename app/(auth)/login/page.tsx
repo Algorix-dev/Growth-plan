@@ -90,6 +90,8 @@ export default function LoginPage() {
                     </form>
 
                     <div className="mt-8 text-center">
+                        <h1 className="text-4xl font-bebas tracking-tighter text-white mb-2">ACCESS &quot;THE FORGE&quot;</h1>
+                        <p className="font-mono text-[10px] text-gold/60 tracking-[0.2em]">&quot;REPRODUCE OR BE ERASED&quot;</p>
                         <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-text-dim">
                             Forging Phase v2.0 · Nigeria
                         </p>

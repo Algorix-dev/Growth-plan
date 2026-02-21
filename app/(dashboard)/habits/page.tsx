@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import {
     ChevronLeft,
@@ -92,7 +91,7 @@ export default function HabitsPage() {
                             </tr>
                         </thead>
                         <tbody>
-                            {habits.map((habit, i) => {
+                            {habits.map((habit) => {
                                 let count = 0;
                                 days.forEach(day => { if (checkedState[`${habit.label}-${day}`]) count++; });
                                 const pct = Math.round((count / 7) * 100);

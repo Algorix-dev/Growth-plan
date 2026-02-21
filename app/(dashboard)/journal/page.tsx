@@ -1,14 +1,7 @@
-"use client"
-
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import {
-    PenTool,
-    Calendar,
-    Target,
-    ChevronRight,
-    Plus,
     Save,
     Trash2,
     Clock
@@ -18,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
 export default function JournalPage() {
-    const [activeTab, setActiveTab] = useState("daily");
     const [dailyRating, setDailyRating] = useState<number | null>(null);
 
     const ratings = [
@@ -40,7 +32,7 @@ export default function JournalPage() {
                 </div>
             </header>
 
-            <Tabs defaultValue="daily" onValueChange={setActiveTab} className="w-full">
+            <Tabs defaultValue="daily" className="w-full">
                 <TabsList className="bg-bg-surface border border-border p-1 rounded-xl mb-8">
                     <TabsTrigger value="daily" className="font-mono text-[10px] uppercase tracking-widest data-[state=active]:bg-gold data-[state=active]:text-black">Daily Review</TabsTrigger>
                     <TabsTrigger value="weekly" className="font-mono text-[10px] uppercase tracking-widest data-[state=active]:bg-blue data-[state=active]:text-black">Weekly Alignment</TabsTrigger>
@@ -52,7 +44,7 @@ export default function JournalPage() {
                         <div className="lg:col-span-2 space-y-6">
                             <div className="bg-bg-surface border border-border p-8 rounded-2xl relative overflow-hidden">
                                 <div className="absolute top-0 left-0 w-1 h-full bg-gold" />
-                                <h3 className="font-bebas text-2xl mb-6">Today's Data</h3>
+                                <h3 className="font-bebas text-2xl mb-6">Today&apos;s Data</h3>
 
                                 <div className="space-y-6">
                                     <div className="space-y-2">
@@ -72,7 +64,7 @@ export default function JournalPage() {
                                     </div>
 
                                     <div className="space-y-2">
-                                        <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-dim">03. Tomorrow's Fix</label>
+                                        <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-dim">03. Tomorrow&apos;s Fix</label>
                                         <Textarea
                                             placeholder="Identify the one thing to fix for tomorrow."
                                             className="bg-bg-base border-border-2 focus:border-gold resize-none min-h-[100px] font-mono text-xs uppercase"

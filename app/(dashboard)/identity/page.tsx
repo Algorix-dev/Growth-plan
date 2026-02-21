@@ -96,7 +96,7 @@ export default function IdentityPage() {
                     <span className="font-mono text-[10px] uppercase text-text-dim tracking-widest">Aura · Presence · Impact</span>
                 </div>
                 <p className="font-serif italic text-text-muted text-lg max-w-xl leading-relaxed">
-                    "Your identity is not who you are. It is who you decide to be every single morning at 3:00 AM."
+                    &quot;Your identity is not who you are. It is who you decide to be every single morning at 3:00 AM.&quot;
                 </p>
             </header>
 
@@ -140,10 +140,11 @@ export default function IdentityPage() {
             <div className="bg-gold-dim border border-gold/20 p-12 rounded-2xl text-center">
                 <h4 className="font-bebas text-4xl mb-4 text-gold">The Composure Rule</h4>
                 <p className="font-serif italic text-xl text-gold-light max-w-2xl mx-auto leading-relaxed mb-6">
-                    "The most powerful man in the room is the one who understands his own triggers and has placed absolute seals upon them."
+                    &quot;The most powerful man in the room is the one who understands his own triggers and has placed absolute seals upon them.&quot;
                 </p>
                 <div className="font-mono text-[9px] uppercase tracking-[0.4em] text-gold/40">
-          // 2-Second Seal · Active
+                    {/* 2-Second Seal · Active */}
+                    2-Second Seal · Active
                 </div>
             </div>
         </div>

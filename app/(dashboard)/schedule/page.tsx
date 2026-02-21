@@ -3,11 +3,25 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { Clock, MapPin, Info } from "lucide-react";
+import { MapPin, Info } from "lucide-react";
 
 const days = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
-const scheduleData: Record<string, any> = {
+interface ScheduleBlock {
+    time: string;
+    cat: string;
+    emoji: string;
+    title: string;
+    dur: string;
+}
+
+interface DayData {
+    courses: string;
+    tag: string;
+    blocks: ScheduleBlock[];
+}
+
+const scheduleData: Record<string, DayData> = {
     MON: {
         courses: "COS202 (11AM–1PM) · CUACOS216 (2PM–4PM)",
         tag: "2 Lectures · Busy Day",
@@ -154,7 +168,7 @@ export default function SchedulePage() {
                                 transition={{ duration: 0.2 }}
                                 className="space-y-6"
                             >
-                                {dayData.blocks.map((block: any, i: number) => (
+                                {dayData.blocks.map((block, i) => (
                                     <div key={i} className="relative group">
                                         <div className="absolute -left-12 md:-left-20 top-1/2 -translate-y-1/2 w-8 md:w-16 text-right font-mono text-[10px] text-text-muted group-hover:text-text transition-colors">
                                             {block.time}

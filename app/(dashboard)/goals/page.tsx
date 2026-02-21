@@ -1,16 +1,9 @@
-"use client"
-
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import {
-    Target,
     ChevronRight,
-    Droplets,
-    Zap,
-    CheckCircle2,
-    TrendingUp,
-    Award
+    CheckCircle2
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -62,7 +55,7 @@ export default function GoalsPage() {
                     <span className="font-mono text-[10px] uppercase text-text-dim tracking-widest">Phase: Forging</span>
                 </div>
                 <p className="font-serif italic text-text-muted text-lg max-w-xl leading-relaxed">
-                    "Goals are declarations of intent. Phases are the blueprints. Execution is the only currency that matters."
+                    &quot;Goals are declarations of intent. Phases are the blueprints. Execution is the only currency that matters.&quot;
                 </p>
             </header>
 
@@ -147,7 +140,7 @@ export default function GoalsPage() {
             <div className="bg-bg-surface border border-border p-8 rounded-2xl flex flex-col md:flex-row items-center gap-12">
                 <div className="text-center md:text-left space-y-2 flex-1">
                     <h4 className="font-bebas text-3xl tracking-wide">Macro Vision</h4>
-                    <p className="font-serif italic text-text-muted max-w-md">"The Forge is where the metal is hardened. These goals are the shape of the sword."</p>
+                    <p className="font-serif italic text-text-muted max-w-md">&quot;The Forge is where the metal is hardened. These goals are the shape of the sword.&quot;</p>
                 </div>
                 <div className="flex gap-8">
                     <div className="text-center">

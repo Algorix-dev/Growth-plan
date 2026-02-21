@@ -4,14 +4,8 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import {
-    TrendingUp,
-    TrendingDown,
-    BarChart2,
-    Clock,
-    Plus,
     Trash2,
     CheckCircle2,
-    AlertCircle,
     Zap
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -38,7 +32,7 @@ const chartData = [
 ];
 
 export default function TradesPage() {
-    const [trades, setTrades] = useState([
+    const [trades] = useState([
         { id: 1, pair: "EURUSD", dir: "LONG", entry: "1.0850", sl: "1.0820", tp: "1.0910", rr: "1:2", outcome: "WIN", date: "20 Feb", emotion: "Calm" },
         { id: 2, pair: "BTCUSD", dir: "SHORT", entry: "52400", sl: "53000", tp: "51000", rr: "1:2.3", outcome: "LOSS", date: "19 Feb", emotion: "Felt fomo" },
     ]);

@@ -1,38 +1,14 @@
-"use client"
-
+import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import {
-    Zap,
     CheckCircle2,
     BookOpen,
     TrendingUp,
     Target,
     Flame
 } from "lucide-react";
-import { useEffect, useState } from "react";
 
 export default function OverviewPage() {
-    const [greeting, setGreeting] = useState("");
-    const [time, setTime] = useState(new Date());
-
-    useEffect(() => {
-        const timer = setInterval(() => setTime(new Date()), 1000);
-        const hour = new Date().getHours();
-        if (hour >= 3 && hour < 6) setGreeting("🔥 3AM Session Active");
-        else if (hour >= 6 && hour < 12) setGreeting("Build in the dark.");
-        else if (hour >= 12 && hour < 18) setGreeting("Stay composed.");
-        else setGreeting("Shine in the light.");
-        return () => clearInterval(timer);
-    }, []);
-
-    const stats = [
-        { label: "Habits Today", value: "0 / 13", icon: CheckCircle2, color: "text-gold" },
-        { label: "Weekly Streak", value: "94%", icon: Flame, color: "text-red" },
-        { label: "Topics Self-Studied", value: "42 / 90", icon: BookOpen, color: "text-blue" },
-        { label: "Trades Logged", value: "12", icon: TrendingUp, color: "text-purple" },
-        { label: "Goals Progress", value: "24%", icon: Target, color: "text-green" },
-    ];
-
     return (
         <div className="space-y-12">
             {/* Hero Section */}
@@ -47,7 +23,7 @@ export default function OverviewPage() {
                         animate={{ opacity: 1, y: 0 }}
                         className="font-mono text-[10px] tracking-[0.3em] uppercase text-gold"
                     >
-            // Emmanuel Peter · 200L · Nigeria · Forging Phase
+                        Emmanuel Peter · 200L · Nigeria · Forging Phase
                     </motion.p>
 
                     <motion.h1
@@ -66,11 +42,11 @@ export default function OverviewPage() {
                         transition={{ delay: 0.2 }}
                         className="font-serif italic text-lg text-text-muted max-w-lg leading-relaxed"
                     >
-                        "3AM while the world sleeps. First class while others cram. Composed while others perform. Nobody sees the work. Everyone sees the result."
+                        &quot;3AM while the world sleeps. First class while others cram. Composed while others perform. Nobody sees the work. Everyone sees the result.&quot;
                     </motion.p>
 
                     <div className="flex flex-wrap gap-2">
-                        {["3AM Wake", "9 Courses", "First Class Target", "Programming Mastery", "Trading Independence"].map((chip, i) => (
+                        {["3AM Wake", "9 Courses", "First Class Target", "Programming Mastery", "Trading Independence"].map((chip) => (
                             <span key={chip} className="px-3 py-1 bg-bg-surface border border-border-2 rounded-sm font-mono text-[9px] uppercase tracking-widest text-text-muted">
                                 {chip}
                             </span>
@@ -81,7 +57,13 @@ export default function OverviewPage() {
 
             {/* Stats Grid */}
             <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                {stats.map((stat, i) => (
+                {[
+                    { label: "Habits Today", value: "0 / 13", icon: CheckCircle2, color: "text-gold" },
+                    { label: "Weekly Streak", value: "94%", icon: Flame, color: "text-red" },
+                    { label: "Topics Self-Studied", value: "42 / 90", icon: BookOpen, color: "text-blue" },
+                    { label: "Trades Logged", value: "12", icon: TrendingUp, color: "text-purple" },
+                    { label: "Goals Progress", value: "24%", icon: Target, color: "text-green" },
+                ].map((stat, i) => (
                     <motion.div
                         key={stat.label}
                         initial={{ opacity: 0, y: 20 }}
@@ -145,18 +127,13 @@ export default function OverviewPage() {
                 <div className="absolute inset-0 bg-gold/5 blur-3xl rounded-full -translate-y-1/2 scale-150 group-hover:scale-110 transition-all duration-1000" />
                 <div className="relative z-10 space-y-4">
                     <p className="font-serif italic text-2xl md:text-3xl text-gold-light max-w-2xl mx-auto leading-relaxed">
-                        "They'll see the physique, the grades, the confidence, the presence. They'll never see the 3AM."
+                        &quot;They&apos;ll see the physique, the grades, the confidence, the presence. They&apos;ll never see the 3AM.&quot;
                     </p>
                     <p className="font-mono text-[10px] tracking-[0.3em] uppercase text-gold/60">
-            // Emmanuel Peter · Forge in silence.
+                        Emmanuel Peter · Forge in silence.
                     </p>
                 </div>
             </section>
         </div>
     );
-}
-
-// Helper for dynamic classes
-function cn(...classes: any[]) {
-    return classes.filter(Boolean).join(" ");
 }

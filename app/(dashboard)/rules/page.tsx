@@ -31,7 +31,7 @@ export default function RulesPage() {
             <section className="bg-bg-surface border border-border p-12 rounded-2xl text-center relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gold/5 blur-3xl rounded-full" />
                 <p className="font-serif italic text-3xl text-gold-light max-w-3xl mx-auto leading-relaxed relative z-10">
-                    "The code is not a suggestion. It is the law that guarantees the result. Break the code, break the future."
+                    &quot;The code is not a suggestion. It is the law that guarantees the result. Break the code, break the future.&quot;
                 </p>
             </section>
 
