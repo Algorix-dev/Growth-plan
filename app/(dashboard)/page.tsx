@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import {
@@ -11,6 +12,16 @@ import {
 } from "lucide-react";
 
 export default function OverviewPage() {
+    const [tradeCount, setTradeCount] = useState(0);
+
+    useEffect(() => {
+        const saved = localStorage.getItem("emmanuel_trades");
+        if (saved) {
+            const trades = JSON.parse(saved);
+            setTradeCount(trades.length);
+        }
+    }, []);
+
     return (
         <div className="space-y-12">
             {/* Hero Section */}
@@ -63,7 +74,7 @@ export default function OverviewPage() {
                     { label: "Habits Today", value: "0 / 13", icon: CheckCircle2, color: "text-gold" },
                     { label: "Weekly Streak", value: "94%", icon: Flame, color: "text-red" },
                     { label: "Topics Self-Studied", value: "42 / 90", icon: BookOpen, color: "text-blue" },
-                    { label: "Trades Logged", value: "12", icon: TrendingUp, color: "text-purple" },
+                    { label: "Trades Logged", value: tradeCount.toString(), icon: TrendingUp, color: "text-purple" },
                     { label: "Goals Progress", value: "24%", icon: Target, color: "text-green" },
                 ].map((stat, i) => (
                     <motion.div

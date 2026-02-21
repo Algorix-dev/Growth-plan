@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import {
@@ -14,6 +14,10 @@ import { Textarea } from "@/components/ui/textarea";
 
 export default function JournalPage() {
     const [dailyRating, setDailyRating] = useState<number | null>(null);
+    const [entries, setEntries] = useState<any[]>([]);
+    const [wins, setWins] = useState("");
+    const [gaps, setGaps] = useState("");
+    const [fix, setFix] = useState("");
 
     const ratings = [
         { val: 1, label: "Lacked Discipline" },
@@ -22,6 +26,38 @@ export default function JournalPage() {
         { val: 4, label: "Strong Execution" },
         { val: 5, label: "Warrior Tier" },
     ];
+
+    useEffect(() => {
+        const saved = localStorage.getItem("emmanuel_journal");
+        if (saved) setEntries(JSON.parse(saved));
+    }, []);
+
+    useEffect(() => {
+        localStorage.setItem("emmanuel_journal", JSON.stringify(entries));
+    }, [entries]);
+
+    const commitEntry = () => {
+        if (!wins && !gaps && !fix && !dailyRating) return;
+
+        const newEntry = {
+            id: Date.now(),
+            date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
+            wins: wins || "No notes",
+            gaps,
+            fix,
+            rating: dailyRating || 3
+        };
+
+        setEntries([newEntry, ...entries]);
+        setWins("");
+        setGaps("");
+        setFix("");
+        setDailyRating(null);
+    };
+
+    const deleteEntry = (id: number) => {
+        setEntries(entries.filter(e => e.id !== id));
+    };
 
     return (
         <div className="space-y-8">
@@ -52,6 +88,8 @@ export default function JournalPage() {
                                     <div className="space-y-2">
                                         <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-dim">01. Major Wins Today</label>
                                         <Textarea
+                                            value={wins}
+                                            onChange={(e) => setWins(e.target.value)}
                                             placeholder="What did you dominate today?"
                                             className="bg-bg-base border-border-2 focus:border-gold resize-none min-h-[100px] font-mono text-xs uppercase"
                                         />
@@ -60,6 +98,8 @@ export default function JournalPage() {
                                     <div className="space-y-2">
                                         <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-dim">02. Critical Gaps & Failures</label>
                                         <Textarea
+                                            value={gaps}
+                                            onChange={(e) => setGaps(e.target.value)}
                                             placeholder="Where did your discipline waver? Be honest."
                                             className="bg-bg-base border-border-2 focus:border-red/40 resize-none min-h-[100px] font-mono text-xs uppercase"
                                         />
@@ -68,6 +108,8 @@ export default function JournalPage() {
                                     <div className="space-y-2">
                                         <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-dim">03. Tomorrow&apos;s Fix</label>
                                         <Textarea
+                                            value={fix}
+                                            onChange={(e) => setFix(e.target.value)}
                                             placeholder="Identify the one thing to fix for tomorrow."
                                             className="bg-bg-base border-border-2 focus:border-gold resize-none min-h-[100px] font-mono text-xs uppercase"
                                         />
@@ -92,7 +134,10 @@ export default function JournalPage() {
                                         </div>
                                     </div>
 
-                                    <Button className="w-full bg-gold hover:bg-gold-light text-black font-bebas text-xl tracking-wider py-6">
+                                    <Button
+                                        onClick={commitEntry}
+                                        className="w-full bg-gold hover:bg-gold-light text-black font-bebas text-xl tracking-wider py-6"
+                                    >
                                         <Save className="w-5 h-5 mr-2" /> Commit to Journal
                                     </Button>
                                 </div>
@@ -102,21 +147,21 @@ export default function JournalPage() {
                         <div className="space-y-6">
                             <h3 className="font-bebas text-2xl text-text-dim">Recent Entries</h3>
                             <div className="space-y-4">
-                                {[
-                                    { date: "Feb 20", wins: "Completed 3hr LeetCode streak, hit gym at 6am.", rating: 4 },
-                                    { date: "Feb 19", wins: "Finished COS202 reading, marked all charts.", rating: 5 },
-                                    { date: "Feb 18", wins: "Woke up at 3am, followed schedule perfectly.", rating: 5 },
-                                ].map((entry, idx) => (
+                                {entries.map((entry, idx) => (
                                     <motion.div
-                                        key={idx}
+                                        key={entry.id}
                                         initial={{ opacity: 0, x: 20 }}
                                         animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: idx * 0.1 }}
                                         className="bg-bg-surface border border-border p-4 rounded-xl group hover:border-border-2 transition-all relative overflow-hidden"
                                     >
                                         <div className="flex items-center justify-between mb-2">
                                             <span className="font-mono text-[9px] uppercase tracking-widest text-text-dim">{entry.date} · Rating: {entry.rating}</span>
-                                            <button className="text-text-dim hover:text-red transition-colors opacity-0 group-hover:opacity-100"><Trash2 className="w-3 h-3" /></button>
+                                            <button
+                                                onClick={() => deleteEntry(entry.id)}
+                                                className="text-text-dim hover:text-red transition-colors opacity-0 group-hover:opacity-100"
+                                            >
+                                                <Trash2 className="w-3 h-3" />
+                                            </button>
                                         </div>
                                         <p className="font-mono text-[11px] uppercase tracking-tight line-clamp-2 text-text-muted group-hover:text-text transition-colors">
                                             {entry.wins}
@@ -130,7 +175,6 @@ export default function JournalPage() {
                         </div>
                     </section>
                 </TabsContent>
-                {/* Weekly & Monthly content would follow a similar pattern but specialized */}
             </Tabs>
         </div>
     );

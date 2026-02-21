@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import {
     ChevronLeft,
@@ -33,6 +33,17 @@ const days = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 export default function HabitsPage() {
     const [week, setWeek] = useState(12);
     const [checkedState, setCheckedState] = useState<Record<string, boolean>>({});
+
+    // Load from localStorage
+    useEffect(() => {
+        const saved = localStorage.getItem("emmanuel_habits");
+        if (saved) setCheckedState(JSON.parse(saved));
+    }, []);
+
+    // Save to localStorage
+    useEffect(() => {
+        localStorage.setItem("emmanuel_habits", JSON.stringify(checkedState));
+    }, [checkedState]);
 
     const toggleHabit = (habitLabel: string, day: string) => {
         const key = `${habitLabel}-${day}`;
