@@ -91,7 +91,6 @@ export default function CoursesPage() {
     // If a course has no scores, it falls back to 0.
     const coursesWithScores = courses.filter(c => c.scores.length > 0);
     let gpa = "0.00";
-    let gpClass = "text-text-muted";
 
     if (coursesWithScores.length > 0) {
         const totalPoints = coursesWithScores.reduce((acc, c) => {
@@ -103,10 +102,6 @@ export default function CoursesPage() {
 
         const calcGpa = (totalPoints / coursesWithScores.length);
         gpa = calcGpa.toFixed(2);
-
-        if (calcGpa >= 4.5) gpClass = "text-green";
-        else if (calcGpa >= 3.5) gpClass = "text-gold";
-        else gpClass = "text-red";
     }
 
     if (!loaded) return null;

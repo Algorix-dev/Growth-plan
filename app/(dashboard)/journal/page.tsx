@@ -270,7 +270,7 @@ export default function JournalPage() {
                                     </div>
 
                                     <div className="space-y-2">
-                                        <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-dim">03. Next Week's Blueprint</label>
+                                        <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-dim">03. Next Week&apos;s Blueprint</label>
                                         <Textarea
                                             value={nextWeek}
                                             onChange={(e) => setNextWeek(e.target.value)}

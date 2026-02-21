@@ -27,7 +27,7 @@ export default function DailyReflectionModal() {
                 if (savedDaily) {
                     const entries = JSON.parse(savedDaily);
                     // Check if there's already an entry for exactly today
-                    hasReviewedToday = entries.some((e: any) => e.date === todayStr);
+                    hasReviewedToday = entries.some((e: { date: string }) => e.date === todayStr);
                 }
 
                 // If no review for today, and not already marked as "snoozed" or closed manually during this session
@@ -133,7 +133,7 @@ export default function DailyReflectionModal() {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-dim">03. Tomorrow's Non-Negotiable</label>
+                                <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-dim">03. Tomorrow&apos;s Non-Negotiable</label>
                                 <Textarea
                                     value={fix}
                                     onChange={(e) => setFix(e.target.value)}
