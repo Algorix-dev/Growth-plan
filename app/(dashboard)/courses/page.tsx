@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import {
@@ -15,126 +15,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 
-interface Topic {
-    id: string;
-    title: string;
-    completed: boolean;
-}
-
-interface Score {
-    label: string;
-    value: number;
-}
-
-interface Course {
-    id: string;
-    code: string;
-    name: string;
-    color: string;
-    category: string;
-    topics: Topic[];
-    scores: Score[];
-}
-
-const initialCourses: Course[] = [
-    {
-        id: "1", code: 'COS202', name: 'Computer Programming II', color: '#8e68c4', category: 'tech',
-        topics: [
-            { id: "t1", title: "Classes & Objects", completed: false },
-            { id: "t2", title: "Encapsulation & Modifiers", completed: false },
-            { id: "t3", title: "Inheritance & Polymorphism", completed: false },
-            { id: "t4", title: "Exception Handling", completed: false },
-            { id: "t101", title: "File I/O & Collections", completed: false },
-            { id: "t102", title: "Design Patterns", completed: false },
-        ],
-        scores: []
-    },
-    {
-        id: "2", code: 'MTH202', name: 'Differential Equations', color: '#a06aff', category: 'math',
-        topics: [
-            { id: "t5", title: "Order & Degree of ODE", completed: false },
-            { id: "t6", title: "Separable Equations", completed: false },
-            { id: "t7", title: "Linear 1st-order / Bernoulli", completed: false },
-            { id: "t103", title: "Exact & Homogeneous", completed: false },
-            { id: "t104", title: "2nd-order Linear ODEs", completed: false },
-            { id: "t105", title: "Laplace Transforms", completed: false },
-        ],
-        scores: []
-    },
-    {
-        id: "3", code: 'CUACOS216', name: 'Introduction to Graphics', color: '#c45a8e', category: 'design',
-        topics: [
-            { id: "t8", title: "Raster vs Vector", completed: false },
-            { id: "t9", title: "Color Models & HSV", completed: false },
-            { id: "t106", title: "Transformations & Clipping", completed: false },
-            { id: "t107", title: "Lighting & Texture", completed: false },
-            { id: "t108", title: "Rendering Pipeline", completed: false },
-        ],
-        scores: []
-    },
-    {
-        id: "4", code: 'INS204', name: 'Systems Analysis & Design', color: '#38bfb0', category: 'tech',
-        topics: [
-            { id: "t10", title: "SDLC & Feasibility Study", completed: false },
-            { id: "t11", title: "Requirements Elicitation", completed: false },
-            { id: "t12", title: "DFD & ERD Mapping", completed: false },
-            { id: "t13", title: "UML & System design", completed: false },
-        ],
-        scores: []
-    },
-    {
-        id: "5", code: 'CUACSC214', name: 'Data Visualisation', color: '#d47a2a', category: 'design',
-        topics: [
-            { id: "t14", title: "Perceptual Principles", completed: false },
-            { id: "t15", title: "Tufte's Rules & Chart Junk", completed: false },
-            { id: "t16", title: "Distributions & Time Series", completed: false },
-            { id: "t17", title: "Interactive Vis (D3/Plotly)", completed: false },
-        ],
-        scores: []
-    },
-    {
-        id: "6", code: 'GST212', name: 'Philosophy & Logic', color: '#4a8fd4', category: 'humanities',
-        topics: [
-            { id: "t18", title: "Branches of Philosophy", completed: false },
-            { id: "t19", title: "Epistemology & Metaphysics", completed: false },
-            { id: "t20", title: "Logic & Fallacies", completed: false },
-            { id: "t21", title: "Existentialism & Ubuntu", completed: false },
-        ],
-        scores: []
-    },
-    {
-        id: "7", code: 'DEP202', name: 'Digital Entrepreneurship III', color: '#d4a843', category: 'business',
-        topics: [
-            { id: "t22", title: "Business Model Canvas", completed: false },
-            { id: "t23", title: "Value Proposition & Discovery", completed: false },
-            { id: "t24", title: "Marketing & Growth Hacking", completed: false },
-            { id: "t25", title: "Unit Economics & IP", completed: false },
-        ],
-        scores: []
-    },
-    {
-        id: "8", code: 'CUACOS212', name: 'Probability Theory', color: '#ff6ad5', category: 'math',
-        topics: [
-            { id: "t26", title: "Sample Spaces & Axioms", completed: false },
-            { id: "t27", title: "Bayes' Theorem & Independent", completed: false },
-            { id: "t28", title: "Random Variables & Normal Dist", completed: false },
-            { id: "t29", title: "Poisson & Exponential", completed: false },
-        ],
-        scores: []
-    },
-    {
-        id: "9", code: 'IFT212', name: 'Computer Architecture', color: '#3abf6a', category: 'tech',
-        topics: [
-            { id: "t30", title: "Number Systems & Boolean", completed: false },
-            { id: "t31", title: "Logic Gates & Combinational", completed: false },
-            { id: "t32", title: "ISA & CPU Architecture", completed: false },
-            { id: "t33", title: "Memory & Pipelining", completed: false },
-        ],
-        scores: []
-    },
-];
-
-import { useEffect } from "react";
+import { initialCourses, Course } from "@/lib/data";
 
 export default function CoursesPage() {
     const [courses, setCourses] = useState<Course[]>(initialCourses);

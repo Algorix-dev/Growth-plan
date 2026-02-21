@@ -12,32 +12,43 @@ import {
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 
-const habits = [
-    { label: '3AM Wake-up', category: 'Foundation', color: 'border-gold text-gold' },
-    { label: 'Manna Devotion', category: 'Spiritual', color: 'border-gold text-gold' },
-    { label: 'Morning Prayer', category: 'Spiritual', color: 'border-gold text-gold' },
-    { label: 'Academic Self-Study (2+ hrs)', category: 'Grades', color: 'border-blue text-blue' },
-    { label: 'LeetCode / Coding Session', category: 'Programming', color: 'border-purple text-purple' },
-    { label: 'Calisthenics Training', category: 'Physical', color: 'border-green text-green' },
-    { label: 'Flexibility / Stretching', category: 'Physical', color: 'border-green text-green' },
-    { label: 'Trading Chart Study', category: 'Trading', color: 'border-red text-red' },
-    { label: 'Trade Journal Updated', category: 'Trading', color: 'border-red text-red' },
-    { label: 'Grooming & Style Check', category: 'Identity', color: 'border-pink text-pink' },
-    { label: 'Posture Check (hourly)', category: 'Identity', color: 'border-pink text-pink' },
-    { label: 'Daily Review Written', category: 'Discipline', color: 'border-gold-light text-gold-light' },
-    { label: '9PM Sleep — no exceptions', category: 'Foundation', color: 'border-gold text-gold' },
-];
+import { initialHabits } from "@/lib/data";
 
 const days = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
 export default function HabitsPage() {
-    const [week, setWeek] = useState(12);
+    const [habits] = useState(initialHabits);
+    const [week, setWeek] = useState(1);
+    const [dateRange, setDateRange] = useState("");
     const [checkedState, setCheckedState] = useState<Record<string, boolean>>({});
 
-    // Load from localStorage
+    // Load from localStorage & Calculate Week
     useEffect(() => {
         const saved = localStorage.getItem("emmanuel_habits");
         if (saved) setCheckedState(JSON.parse(saved));
+
+        const savedStart = localStorage.getItem("emmanuel_start_date");
+        if (savedStart) {
+            const start = new Date(savedStart);
+            const now = new Date();
+
+            // Calculate week number
+            const diffTime = Math.abs(now.getTime() - start.getTime());
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            const currentWeek = Math.max(1, Math.ceil(diffDays / 7));
+            setWeek(currentWeek);
+
+            // Calculate date range for current week
+            const weekStart = new Date(start);
+            weekStart.setDate(start.getDate() + (currentWeek - 1) * 7);
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekStart.getDate() + 6);
+
+            const format = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            setDateRange(`${format(weekStart)} – ${format(weekEnd)}`);
+        } else {
+            setDateRange("Plan not started");
+        }
     }, []);
 
     // Save to localStorage
@@ -74,8 +85,8 @@ export default function HabitsPage() {
                         <ChevronLeft className="w-5 h-5" />
                     </button>
                     <div className="px-4 text-center min-w-[120px]">
-                        <p className="font-bebas text-xl">WEEK {week}</p>
-                        <p className="font-mono text-[9px] uppercase text-text-dim">Feb 17 – Feb 23</p>
+                        <p className="font-bebas text-xl uppercase">Week {week}</p>
+                        <p className="font-mono text-[9px] uppercase text-text-dim tracking-widest">{dateRange}</p>
                     </div>
                     <button
                         onClick={() => setWeek(w => w + 1)}

@@ -11,14 +11,7 @@ import {
     Flame
 } from "lucide-react";
 
-interface Goal {
-    id: string;
-    phases: { done: boolean }[];
-}
-
-interface Course {
-    topics: { completed: boolean }[];
-}
+import { initialGoals, initialCourses, initialHabits, Goal, Course } from "@/lib/data";
 
 export default function OverviewPage() {
     const [stats, setStats] = useState({
@@ -29,123 +22,131 @@ export default function OverviewPage() {
         goals: "0%"
     });
 
-    const [pillarProgress, setPillarProgress] = useState([30, 40, 50, 60, 70, 80]);
+    const [pillarProgress, setPillarProgress] = useState([0, 0, 0, 0, 0, 0]);
+    const [startDate, setStartDate] = useState<string | null>(null);
 
     useEffect(() => {
-        // Habits & Streak
+        // --- Start Date ---
+        const savedStart = localStorage.getItem("emmanuel_start_date");
+        if (savedStart) setStartDate(savedStart);
+
+        // --- Habits & Streak ---
         const savedHabits = localStorage.getItem("emmanuel_habits");
-        if (savedHabits) {
-            const habits = JSON.parse(savedHabits);
-            const today = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"][new Date().getDay()];
-            const habitLabels = [
-                '3AM Wake-up', 'Manna Devotion', 'Morning Prayer', 'Academic Self-Study (2+ hrs)',
-                'LeetCode / Coding Session', 'Calisthenics Training', 'Flexibility / Stretching',
-                'Trading Chart Study', 'Trade Journal Updated', 'Grooming & Style Check',
-                'Posture Check (hourly)', 'Daily Review Written', '9PM Sleep — no exceptions'
-            ];
+        const habitsData = savedHabits ? JSON.parse(savedHabits) : {};
 
-            const checkedToday = Object.keys(habits).filter(k => k.endsWith(`-${today}`) && habits[k]).length;
+        const today = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"][new Date().getDay()];
+        const checkedToday = Object.keys(habitsData).filter(k => k.endsWith(`-${today}`) && habitsData[k]).length;
 
-            // Calculate Weekly Streak (Total completion % for the week)
-            let totalChecked = 0;
-            Object.values(habits).forEach(v => { if (v) totalChecked++; });
-            const totalSlots = habitLabels.length * 7;
-            const streakPct = totalSlots > 0 ? Math.round((totalChecked / totalSlots) * 100) : 0;
+        let totalChecked = 0;
+        Object.values(habitsData).forEach(v => { if (v) totalChecked++; });
+        const totalSlots = initialHabits.length * 7;
+        const streakPct = totalSlots > 0 ? Math.round((totalChecked / totalSlots) * 100) : 0;
 
-            setStats(prev => ({
-                ...prev,
-                habits: `${checkedToday} / 13`,
-                streak: `${streakPct}%`
-            }));
-        }
+        setStats(prev => ({
+            ...prev,
+            habits: `${checkedToday} / ${initialHabits.length}`,
+            streak: `${streakPct}%`
+        }));
 
-        // Trades
+        // --- Trades ---
         const savedTrades = localStorage.getItem("emmanuel_trades");
         if (savedTrades) {
             const trades = JSON.parse(savedTrades);
             setStats(prev => ({ ...prev, trades: trades.length.toString() }));
         }
 
-        // Goals & Pillars
+        // --- Goals & Pillars ---
         const savedGoals = localStorage.getItem("emmanuel_goals");
-        if (savedGoals) {
-            const goals: Goal[] = JSON.parse(savedGoals);
-            let total = 0;
-            let done = 0;
-            const goalPcts: Record<string, number> = {};
+        const activeGoals: Goal[] = savedGoals ? JSON.parse(savedGoals) : initialGoals;
 
-            goals.forEach((g: Goal) => {
-                const gTotal = g.phases.length;
-                const gDone = g.phases.filter((p) => p.done).length;
-                const gPct = gTotal > 0 ? Math.round((gDone / gTotal) * 100) : 0;
+        let total = 0;
+        let done = 0;
+        const goalPcts: Record<string, number> = {};
 
-                total += gTotal;
-                done += gDone;
-                goalPcts[g.id] = gPct;
-            });
+        activeGoals.forEach((g: Goal) => {
+            const gTotal = g.phases.length;
+            const gDone = g.phases.filter((p) => p.done).length;
+            const gPct = gTotal > 0 ? Math.round((gDone / gTotal) * 100) : 0;
 
-            // Pillars Mapping:
-            // 0: Technical Power -> g2 (Programming)
-            // 1: Mathematical Maturity -> g1 (Grades)
-            // 2: Financial Intelligence -> g3 (Trading)
-            // 3: Athletic Discipline -> g4 (Athletic)
-            // 4: Social Composure -> g5 (Social)
-            // 5: Spiritual Alignment -> g6 (Spiritual)
-            const pProgs = [
-                goalPcts["g2"] || 0,
-                goalPcts["g1"] || 0,
-                goalPcts["g3"] || 0,
-                goalPcts["g4"] || 0,
-                goalPcts["g5"] || 0,
-                goalPcts["g6"] || 0,
-            ];
+            total += gTotal;
+            done += gDone;
+            goalPcts[g.id] = gPct;
+        });
 
-            setPillarProgress(pProgs);
+        const pProgs = [
+            goalPcts["g2"] || 0, // Technical Power
+            goalPcts["g1"] || 0, // Mathematical Maturity
+            goalPcts["g3"] || 0, // Financial Intelligence
+            goalPcts["g4"] || 0, // Athletic Discipline
+            goalPcts["g5"] || 0, // Social Composure
+            goalPcts["g6"] || 0, // Spiritual Alignment
+        ];
 
-            const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-            setStats(prev => ({ ...prev, goals: `${pct}%` }));
-        }
+        setPillarProgress(pProgs);
+        const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+        setStats(prev => ({ ...prev, goals: `${pct}%` }));
 
-        // Courses
+        // --- Courses ---
         const savedCourses = localStorage.getItem("emmanuel_courses");
-        if (savedCourses) {
-            const courses: Course[] = JSON.parse(savedCourses);
-            let total = 0;
-            let done = 0;
-            courses.forEach((c: Course) => {
-                total += c.topics.length;
-                done += c.topics.filter((t) => t.completed).length;
-            });
-            setStats(prev => ({ ...prev, topics: `${done} / ${total}` }));
-        }
+        const activeCourses: Course[] = savedCourses ? JSON.parse(savedCourses) : initialCourses;
+
+        let cTotal = 0;
+        let cDone = 0;
+        activeCourses.forEach((c: Course) => {
+            cTotal += c.topics.length;
+            cDone += c.topics.filter((t) => t.completed).length;
+        });
+        setStats(prev => ({ ...prev, topics: `${cDone} / ${cTotal}` }));
     }, []);
+
+    const startPlan = () => {
+        const now = new Date().toISOString();
+        localStorage.setItem("emmanuel_start_date", now);
+        setStartDate(now);
+        window.location.reload(); // Refresh to update all relative dates
+    };
 
     return (
         <div className="space-y-12">
             {/* Hero Section */}
             <section className="relative overflow-hidden py-12 border-b border-border">
-                <div className="absolute top-0 right-0 font-bebas text-[15rem] leading-none text-gold/5 pointer-events-none select-none">
+                <div className="absolute top-0 right-0 font-bebas text-[15rem] leading-none text-gold/5 pointer-events-none select-none hidden md:block">
                     EP
                 </div>
 
                 <div className="relative z-10 space-y-6">
-                    <motion.p
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="font-mono text-[10px] tracking-[0.3em] uppercase text-gold"
-                    >
-                        Emmanuel Peter · 200L · Nigeria · Forging Phase
-                    </motion.p>
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                        <div className="space-y-6">
+                            <motion.p
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="font-mono text-[10px] tracking-[0.3em] uppercase text-gold"
+                            >
+                                Emmanuel Peter · 200L · Nigeria · Forging Phase
+                            </motion.p>
 
-                    <motion.h1
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 }}
-                        className="text-6xl md:text-8xl font-bebas leading-[0.9] tracking-tight"
-                    >
-                        Build in the <span className="text-gold">dark.</span><br />
-                        Shine in the <span className="text-gold">light.</span>
-                    </motion.h1>
+                            <motion.h1
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.1 }}
+                                className="text-6xl md:text-8xl font-bebas leading-[0.9] tracking-tight"
+                            >
+                                Build in the <span className="text-gold">dark.</span><br />
+                                Shine in the <span className="text-gold">light.</span>
+                            </motion.h1>
+                        </div>
+
+                        {!startDate && (
+                            <motion.button
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                onClick={startPlan}
+                                className="px-8 py-4 bg-gold text-bg-dark font-bebas text-2xl tracking-widest rounded-sm hover:bg-gold-light transition-all active:scale-95 shadow-[0_0_30px_rgba(212,175,55,0.3)]"
+                            >
+                                START GROWTH PLAN
+                            </motion.button>
+                        )}
+                    </div>
 
                     <motion.p
                         initial={{ opacity: 0 }}
