@@ -63,6 +63,11 @@ const config: Config = {
 				'border-2': 'var(--border-2)',
 				input: 'var(--bg-muted)',
 				ring: 'var(--gold)',
+				text: {
+					DEFAULT: 'var(--text)',
+					muted: 'var(--text-muted)',
+					dim: 'var(--text-dim)',
+				}
 			},
 			borderRadius: {
 				lg: '14px',
