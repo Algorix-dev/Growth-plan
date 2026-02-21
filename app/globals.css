@@ -5,33 +5,44 @@
 @layer base {
   :root {
     /* Backgrounds — layered dark */
-    --bg-base:    #09090c;   /* deepest background */
-    --bg-surface: #0f0f14;   /* cards, sidebar */
-    --bg-elevated:#16161e;   /* modals, hover states */
-    --bg-muted:   #1c1c26;   /* input backgrounds */
+    --bg-base: #09090c;
+    /* deepest background */
+    --bg-surface: #0f0f14;
+    /* cards, sidebar */
+    --bg-elevated: #16161e;
+    /* modals, hover states */
+    --bg-muted: #1c1c26;
+    /* input backgrounds */
 
     /* Borders */
-    --border:     #21212e;
-    --border-2:   #2e2e3e;
+    --border: #21212e;
+    --border-2: #2e2e3e;
 
     /* Accent — Gold (primary brand) */
-    --gold:       #c9962e;
+    --gold: #c9962e;
     --gold-light: #e8b84b;
-    --gold-dim:   rgba(201,150,46,0.12);
+    --gold-dim: rgba(201, 150, 46, 0.12);
 
     /* Semantic colors */
-    --blue:       #4a8fd4;   /* Academic / Study */
-    --purple:     #8e68c4;   /* Programming / Code */
-    --green:      #3abf6a;   /* Physical / Health */
-    --red:        #d94f4f;   /* Trading / Urgency */
-    --teal:       #38bfb0;   /* Social / Identity */
-    --orange:     #d47a2a;   /* Transit / Movement */
-    --pink:       #c45a8e;   /* Style / Aesthetics */
+    --blue: #4a8fd4;
+    /* Academic / Study */
+    --purple: #8e68c4;
+    /* Programming / Code */
+    --green: #3abf6a;
+    /* Physical / Health */
+    --red: #d94f4f;
+    /* Trading / Urgency */
+    --teal: #38bfb0;
+    /* Social / Identity */
+    --orange: #d47a2a;
+    /* Transit / Movement */
+    --pink: #c45a8e;
+    /* Style / Aesthetics */
 
     /* Text */
-    --text:       #d8d8e8;
+    --text: #d8d8e8;
     --text-muted: #5a5a78;
-    --text-dim:   #32323f;
+    --text-dim: #32323f;
 
     --radius: 0.5rem;
   }
@@ -41,6 +52,7 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-bg-base text-foreground font-mono antialiased min-h-screen relative overflow-x-hidden;
     font-size: 13px;
@@ -56,7 +68,12 @@
     mix-blend-mode: overlay;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-bebas uppercase tracking-wider;
   }
 }
@@ -82,5 +99,5 @@
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-text-muted;
+  @apply bg-muted-foreground;
 }
