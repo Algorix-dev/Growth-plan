@@ -1,0 +1,198 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = "postgresql://postgres:password@localhost:5432/emmanuel_os?schema=public"
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String
+  createdAt     DateTime @default(now())
+  
+  // Relations
+  habitLogs     HabitLog[]
+  journalEntries JournalEntry[]
+  weeklyReviews WeeklyReview[]
+  monthlyReviews MonthlyReview[]
+  trades        Trade[]
+  courseProgress CourseTopicProgress[]
+  courseScores  CourseScore[]
+  goalProgress  GoalPhaseProgress[]
+}
+
+model Course {
+  id       String @id @default(cuid())
+  code     String @unique  // e.g. "COS202"
+  name     String          // e.g. "Computer Programming II"
+  days     String          // e.g. "Mon 11AM–1PM · Tue 2PM–3PM"
+  color    String          // hex accent color
+  category String          // tech | math | design | business | humanities
+  
+  topics   CourseTopic[]
+  scores   CourseScore[]
+  progress CourseTopicProgress[]
+}
+
+model CourseTopic {
+  id       String @id @default(cuid())
+  courseId String
+  order    Int
+  title    String
+  
+  course   Course @relation(fields: [courseId], references: [id])
+  progress CourseTopicProgress[]
+}
+
+model CourseTopicProgress {
+  id        String   @id @default(cuid())
+  userId    String
+  topicId   String
+  completed Boolean  @default(false)
+  completedAt DateTime?
+  
+  user  User        @relation(fields: [userId], references: [id])
+  topic CourseTopic @relation(fields: [topicId], references: [id])
+  course Course     @relation(fields: [courseId], references: [id])
+  courseId String
+  
+  @@unique([userId, topicId])
+}
+
+model CourseScore {
+  id       String @id @default(cuid())
+  userId   String
+  courseId String
+  score    Float
+  type     String   // "test" | "exam" | "assignment"
+  label    String   // e.g. "Midterm Test 1"
+  date     DateTime @default(now())
+  
+  user   User   @relation(fields: [userId], references: [id])
+  course Course @relation(fields: [courseId], references: [id])
+}
+
+model Habit {
+  id       String @id @default(cuid())
+  label    String
+  category String  // Foundation | Spiritual | Grades | Programming | Physical | Trading | Identity | Discipline
+  color    String  // css color
+  order    Int
+  
+  logs HabitLog[]
+}
+
+model HabitLog {
+  id        String   @id @default(cuid())
+  userId    String
+  habitId   String
+  date      DateTime @db.Date   // just the date, no time
+  completed Boolean  @default(false)
+  week      Int      // week number 1, 2, 3...
+  
+  user  User  @relation(fields: [userId], references: [id])
+  habit Habit @relation(fields: [habitId], references: [id])
+  
+  @@unique([userId, habitId, date])
+}
+
+model JournalEntry {
+  id        String   @id @default(cuid())
+  userId    String
+  date      DateTime @default(now())
+  wins      String?
+  gaps      String?
+  fixTomorrow String?
+  rating    Int?     // 1-5
+  
+  user User @relation(fields: [userId], references: [id])
+}
+
+model WeeklyReview {
+  id         String   @id @default(cuid())
+  userId     String
+  weekNumber Int
+  date       DateTime @default(now())
+  academic   String?
+  skills     String?
+  body       String?
+  priority   String?
+  rating     Int?     // 1-5
+  
+  user User @relation(fields: [userId], references: [id])
+}
+
+model MonthlyReview {
+  id            String   @id @default(cuid())
+  userId        String
+  month         Int      // 1-12
+  year          Int
+  academic      String?
+  code          String?
+  trade         String?
+  body          String?
+  identity      String?
+  spirit        String?
+  identityStmt  String?  // "I am becoming someone who..."
+  
+  user User @relation(fields: [userId], references: [id])
+  
+  @@unique([userId, month, year])
+}
+
+model Trade {
+  id         String   @id @default(cuid())
+  userId     String
+  date       DateTime
+  pair       String   // e.g. "EURUSD"
+  direction  String   // "LONG" | "SHORT"
+  entryPrice String?
+  stopLoss   String?
+  takeProfit String?
+  outcome    String   // "WIN" | "LOSS" | "BE"
+  rr         String?  // "1:2.5"
+  emotion    String?
+  reason     String?
+  lesson     String?
+  createdAt  DateTime @default(now())
+  
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Goal {
+  id       String @id @default(cuid())
+  title    String
+  tagline  String
+  icon     String
+  color    String
+  order    Int
+  
+  phases GoalPhase[]
+}
+
+model GoalPhase {
+  id     String @id @default(cuid())
+  goalId String
+  order  Int
+  title  String
+  detail String @db.Text
+  
+  goal     Goal              @relation(fields: [goalId], references: [id])
+  progress GoalPhaseProgress[]
+}
+
+model GoalPhaseProgress {
+  id        String   @id @default(cuid())
+  userId    String
+  phaseId   String
+  completed Boolean  @default(false)
+  completedAt DateTime?
+  
+  user  User      @relation(fields: [userId], references: [id])
+  phase GoalPhase @relation(fields: [phaseId], references: [id])
+  
+  @@unique([userId, phaseId])
+}
