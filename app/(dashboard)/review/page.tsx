@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { CheckCircle2, BookOpen, Flame, Target, TrendingUp, FileText, Save } from "lucide-react";
+import { BookOpen, Flame, Target, TrendingUp, FileText, Save } from "lucide-react";
 import { initialHabits, initialGoals, initialCourses } from "@/lib/data";
 
 function getWeekDates() {
