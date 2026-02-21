@@ -12,9 +12,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
+interface JournalEntry {
+    id: number;
+    date: string;
+    wins: string;
+    gaps: string;
+    fix: string;
+    rating: number;
+}
+
 export default function JournalPage() {
     const [dailyRating, setDailyRating] = useState<number | null>(null);
-    const [entries, setEntries] = useState<any[]>([]);
+    const [entries, setEntries] = useState<JournalEntry[]>([]);
     const [wins, setWins] = useState("");
     const [gaps, setGaps] = useState("");
     const [fix, setFix] = useState("");
@@ -39,7 +48,7 @@ export default function JournalPage() {
     const commitEntry = () => {
         if (!wins && !gaps && !fix && !dailyRating) return;
 
-        const newEntry = {
+        const newEntry: JournalEntry = {
             id: Date.now(),
             date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
             wins: wins || "No notes",
@@ -147,7 +156,7 @@ export default function JournalPage() {
                         <div className="space-y-6">
                             <h3 className="font-bebas text-2xl text-text-dim">Recent Entries</h3>
                             <div className="space-y-4">
-                                {entries.map((entry, idx) => (
+                                {entries.map((entry) => (
                                     <motion.div
                                         key={entry.id}
                                         initial={{ opacity: 0, x: 20 }}

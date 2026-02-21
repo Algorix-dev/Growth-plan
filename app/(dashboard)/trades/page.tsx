@@ -5,8 +5,7 @@ import { cn } from "@/lib/utils";
 import {
     Trash2,
     CheckCircle2,
-    Zap,
-    Plus
+    Zap
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -250,7 +249,7 @@ export default function TradesPage() {
                                     {["WIN", "LOSS", "BE"].map((o) => (
                                         <button
                                             key={o}
-                                            onClick={() => setNewTrade({ ...newTrade, outcome: o as any })}
+                                            onClick={() => setNewTrade({ ...newTrade, outcome: o as Trade["outcome"] })}
                                             className={cn(
                                                 "flex-1 py-3 rounded border font-bebas text-lg transition-all",
                                                 newTrade.outcome === o
