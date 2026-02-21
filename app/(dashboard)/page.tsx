@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 
 interface Goal {
+    id: string;
     phases: { done: boolean }[];
 }
 
@@ -57,7 +58,7 @@ export default function OverviewPage() {
 
             goals.forEach((g: Goal) => {
                 const gTotal = g.phases.length;
-                const gDone = g.phases.filter((p: any) => p.done).length;
+                const gDone = g.phases.filter((p) => p.done).length;
                 const gPct = gTotal > 0 ? Math.round((gDone / gTotal) * 100) : 0;
 
                 total += gTotal;
