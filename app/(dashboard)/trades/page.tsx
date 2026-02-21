@@ -103,13 +103,40 @@ export default function TradesPage() {
     };
 
     const wins = trades.filter(t => t.outcome === "WIN").length;
-    const total = trades.length;
-    const winRate = total > 0 ? Math.round((wins / total) * 100) : 0;
+    const losses = trades.filter(t => t.outcome === "LOSS").length;
+    const total = trades.filter(t => t.outcome !== "BE").length; // BE doesn't affect wr
+    const winRate = total > 0 ? ((wins / total) * 100).toFixed(1) : "0.0";
 
-    // Generate chart data from trades
-    const chartData = trades.length > 0
-        ? trades.slice(0, 7).reverse().map((t, i) => ({ name: t.date, wr: Math.round(((trades.slice(0, total - i).filter(tr => tr.outcome === "WIN").length) / (total - i)) * 100) }))
-        : Array(7).fill({ name: "...", wr: 0 });
+    // Simulated precise metrics
+    const avgRR = 2.0; // Hardcoded baseline based on user requirement
+    const profitFactor = losses > 0 ? ((wins * avgRR) / losses).toFixed(2) : wins > 0 ? "∞" : "0.00";
+
+    // Generate advanced chart data (Equity Curve + Win Rate)
+    // Starting equity = 100%. Win = +2%, Loss = -1%.
+    let currentEquity = 100;
+
+    // Sort chronological for chart (oldest to newest)
+    const chronologicalTrades = [...trades].reverse();
+
+    const chartData = chronologicalTrades.map((t, i) => {
+        if (t.outcome === "WIN") currentEquity += 2.0;
+        if (t.outcome === "LOSS") currentEquity -= 1.0;
+
+        const currentWins = chronologicalTrades.slice(0, i + 1).filter(tr => tr.outcome === "WIN").length;
+        const currentTotal = chronologicalTrades.slice(0, i + 1).filter(tr => tr.outcome !== "BE").length;
+        const currentWr = currentTotal > 0 ? Math.round((currentWins / currentTotal) * 100) : 0;
+
+        return {
+            name: t.date,
+            equity: Number(currentEquity.toFixed(1)),
+            wr: currentWr
+        };
+    });
+
+    // Pad if empty
+    if (chartData.length === 0) {
+        chartData.push(...Array(7).fill({ name: "...", equity: 100, wr: 0 }));
+    }
 
     return (
         <div className="space-y-12">
@@ -122,11 +149,11 @@ export default function TradesPage() {
             {/* Stats Bar */}
             <section className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 {[
-                    { label: "Total Trades", val: total, color: "text-text" },
+                    { label: "Net Perf.", val: `${(currentEquity - 100).toFixed(1)}%`, color: currentEquity >= 100 ? "text-green" : "text-red" },
                     { label: "Win Rate", val: `${winRate}%`, color: "text-green" },
-                    { label: "Profit Factor", val: total > 0 ? (wins / (total - wins || 1)).toFixed(2) : "0.00", color: "text-gold" },
-                    { label: "Wins", val: wins, color: "text-green" },
-                    { label: "Losses", val: total - wins, color: "text-red" },
+                    { label: "Profit Factor", val: profitFactor, color: "text-gold" },
+                    { label: "Avg R:R", val: `1:${avgRR.toFixed(1)}`, color: "text-blue" },
+                    { label: "Total Executed", val: trades.length, color: "text-text" },
                 ].map((stat, i) => (
                     <div key={i} className="bg-bg-surface border border-border p-5 rounded-xl text-center">
                         <p className="font-mono text-[9px] uppercase tracking-widest text-text-dim mb-1">{stat.label}</p>
@@ -276,19 +303,26 @@ export default function TradesPage() {
                 {/* Trade History & Performance */}
                 <div className="lg:col-span-2 space-y-8">
                     {/* Win Rate Chart */}
-                    <div className="bg-bg-surface border border-border p-6 rounded-2xl">
-                        <h3 className="font-bebas text-xl mb-6">Win Rate Trend</h3>
-                        <div className="h-[200px] w-full">
+                    {/* Equity Curve Chart */}
+                    <div className="bg-bg-surface border border-border p-6 rounded-2xl relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-gold/5 blur-[100px]" />
+                        <h3 className="font-bebas text-xl mb-6 flex items-center justify-between">
+                            <span>Equity Curve & Performance</span>
+                            <span className="font-mono text-[9px] uppercase tracking-widest text-gold bg-gold/10 px-2 py-1 rounded">Simulated at 1% Risk</span>
+                        </h3>
+                        <div className="h-[250px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={chartData}>
+                                <LineChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="#21212e" vertical={false} />
                                     <XAxis dataKey="name" stroke="#5a5a78" fontSize={10} axisLine={false} tickLine={false} />
-                                    <YAxis stroke="#5a5a78" fontSize={10} axisLine={false} tickLine={false} domain={[0, 100]} />
+                                    <YAxis yAxisId="left" stroke="#5a5a78" fontSize={10} axisLine={false} tickLine={false} domain={['auto', 'auto']} tickFormatter={(val) => `${val}%`} />
+                                    <YAxis yAxisId="right" orientation="right" stroke="#5a5a78" fontSize={10} axisLine={false} tickLine={false} domain={[0, 100]} />
                                     <Tooltip
-                                        contentStyle={{ backgroundColor: '#0f0f14', border: '1px solid #21212e', fontSize: '10px' }}
-                                        itemStyle={{ color: '#c9962e' }}
+                                        contentStyle={{ backgroundColor: '#0f0f14', border: '1px solid #21212e', fontSize: '10px', borderRadius: '8px' }}
+                                        labelStyle={{ color: '#5a5a78', marginBottom: '4px' }}
                                     />
-                                    <Line type="monotone" dataKey="wr" stroke="#c9962e" strokeWidth={2} dot={{ fill: '#c9962e', r: 4 }} activeDot={{ r: 6 }} />
+                                    <Line yAxisId="left" name="Equity" type="monotone" dataKey="equity" stroke="#c9962e" strokeWidth={3} dot={false} activeDot={{ r: 6, fill: '#c9962e' }} />
+                                    <Line yAxisId="right" name="Win Rate" type="monotone" dataKey="wr" stroke="#22c55e" strokeWidth={1} strokeDasharray="5 5" dot={false} />
                                 </LineChart>
                             </ResponsiveContainer>
                         </div>

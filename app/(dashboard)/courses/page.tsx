@@ -10,20 +10,47 @@ import {
     Plus,
     GraduationCap,
     LayoutGrid,
-    Filter
+    Filter,
+    X,
+    Info
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 
 import { initialCourses, Course } from "@/lib/data";
 
+function getGradePoint(score: number) {
+    if (score >= 70) return 5.0; // A
+    if (score >= 60) return 4.0; // B
+    if (score >= 50) return 3.0; // C
+    if (score >= 45) return 2.0; // D
+    if (score >= 40) return 1.0; // E
+    return 0.0; // F
+}
+
+function getGradeLetter(score: number) {
+    if (score >= 70) return "A";
+    if (score >= 60) return "B";
+    if (score >= 50) return "C";
+    if (score >= 45) return "D";
+    if (score >= 40) return "E";
+    return "F";
+}
+
 export default function CoursesPage() {
     const [courses, setCourses] = useState<Course[]>(initialCourses);
     const [expanded, setExpanded] = useState<string | null>("1");
+    const [loaded, setLoaded] = useState(false);
+
+    // Scoring Modal State
+    const [scoreModal, setScoreModal] = useState<string | null>(null);
+    const [scoreLabel, setScoreLabel] = useState("");
+    const [scoreVal, setScoreVal] = useState("");
 
     useEffect(() => {
         const saved = localStorage.getItem("emmanuel_courses");
         if (saved) setCourses(JSON.parse(saved));
+        setLoaded(true);
     }, []);
 
     useEffect(() => {
@@ -40,14 +67,49 @@ export default function CoursesPage() {
         }));
     };
 
-    // Live GPA Estimate: each course progress % mapped to 5.0 scale
-    const gpa = courses.length > 0
-        ? (courses.reduce((acc, c) => {
-            const pct = c.topics.filter(t => t.completed).length / c.topics.length;
-            // 0% = 1.0, 100% = 5.0 (5.0 scale)
-            return acc + (1 + pct * 4);
-        }, 0) / courses.length).toFixed(2)
-        : "0.00";
+    const addScore = () => {
+        if (!scoreModal || !scoreLabel || !scoreVal) return;
+        const val = parseFloat(scoreVal);
+        if (isNaN(val) || val < 0 || val > 100) return;
+
+        setCourses(courses.map(c => {
+            if (c.id === scoreModal) {
+                return {
+                    ...c,
+                    scores: [...c.scores, { label: scoreLabel, value: val }]
+                };
+            }
+            return c;
+        }));
+
+        setScoreModal(null);
+        setScoreLabel("");
+        setScoreVal("");
+    };
+
+    // Live GPA Estimate: based on ACTUAL scores entered, assuming equal weight for now.
+    // If a course has no scores, it falls back to 0.
+    const coursesWithScores = courses.filter(c => c.scores.length > 0);
+    let gpa = "0.00";
+    let gpClass = "text-text-muted";
+
+    if (coursesWithScores.length > 0) {
+        const totalPoints = coursesWithScores.reduce((acc, c) => {
+            // Sum up scores. Typically CA is 30, Exam is 70 = 100.
+            // If they enter multiple, we sum them capped at 100 for the final grade calculation.
+            const totalScore = Math.min(c.scores.reduce((sum, s) => sum + s.value, 0), 100);
+            return acc + getGradePoint(totalScore);
+        }, 0);
+
+        const calcGpa = (totalPoints / coursesWithScores.length);
+        gpa = calcGpa.toFixed(2);
+
+        if (calcGpa >= 4.5) gpClass = "text-green";
+        else if (calcGpa >= 3.5) gpClass = "text-gold";
+        else gpClass = "text-red";
+    }
+
+    if (!loaded) return null;
 
     return (
         <div className="space-y-8">
@@ -120,11 +182,27 @@ export default function CoursesPage() {
                                         {course.scores.map((score, sidx) => (
                                             <div key={sidx} className="bg-bg-base border border-border-2 p-2 rounded flex items-center justify-between">
                                                 <span className="font-mono text-[9px] uppercase text-text-dim truncate">{score.label}</span>
-                                                <span className={cn("font-bebas text-lg", score.value >= 70 ? "text-green" : "text-gold")}>{score.value}</span>
+                                                <span className={cn("font-bebas text-lg tracking-widest", score.value >= 70 ? "text-green" : "text-gold")}>{score.value}</span>
                                             </div>
                                         ))}
-                                        <button className="border border-dashed border-border-2 p-2 rounded flex items-center justify-center text-text-dim hover:text-gold hover:border-gold transition-all text-[10px] font-mono uppercase gap-2">
-                                            <Plus className="w-3 h-3" /> Score
+                                        {course.scores.length > 0 && (
+                                            <div className="bg-bg-base border border-gold/30 p-2 rounded flex items-center justify-between col-span-full">
+                                                <span className="font-mono text-[9px] uppercase text-gold truncate">Total Score</span>
+                                                <div className="flex gap-2 items-center">
+                                                    <span className="font-bebas text-xl text-text">
+                                                        {Math.min(course.scores.reduce((sum, s) => sum + s.value, 0), 100)}
+                                                    </span>
+                                                    <span className="font-bebas text-lg px-2 rounded bg-gold text-black">
+                                                        {getGradeLetter(Math.min(course.scores.reduce((sum, s) => sum + s.value, 0), 100))}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        )}
+                                        <button
+                                            onClick={() => setScoreModal(course.id)}
+                                            className="border border-dashed border-border-2 p-2 rounded flex items-center justify-center text-text-dim hover:text-gold hover:border-gold transition-all text-[10px] font-mono uppercase gap-2 col-span-full mt-2"
+                                        >
+                                            <Plus className="w-3 h-3" /> Add CA / Exam Score
                                         </button>
                                     </div>
                                 </div>
@@ -205,14 +283,77 @@ export default function CoursesPage() {
                     </div>
                 </div>
 
-                <div className="bg-bg-surface border border-border p-6 rounded-xl flex items-center gap-4">
-                    <Plus className="text-text-muted w-8 h-8" />
-                    <div>
-                        <h4 className="font-bebas text-xl">Next Milestone</h4>
-                        <p className="font-serif italic text-sm text-text-muted">Algorithm Exam · Mar 12</p>
+                <div className="bg-bg-surface border border-border p-6 rounded-xl md:col-span-full xl:col-span-1">
+                    <div className="flex items-center gap-2 mb-4">
+                        <Info className="text-text-dim w-5 h-5" />
+                        <h4 className="font-bebas text-xl">Standard Grading System</h4>
+                    </div>
+                    <div className="grid grid-cols-6 gap-2 text-center border-t border-border-2 pt-4">
+                        <div><p className="font-bebas text-lg text-green">A</p><p className="font-mono text-[9px] text-text-dim">70-100</p><p className="font-mono text-[9px] text-text-dim">5.0</p></div>
+                        <div><p className="font-bebas text-lg text-gold-light">B</p><p className="font-mono text-[9px] text-text-dim">60-69</p><p className="font-mono text-[9px] text-text-dim">4.0</p></div>
+                        <div><p className="font-bebas text-lg text-gold">C</p><p className="font-mono text-[9px] text-text-dim">50-59</p><p className="font-mono text-[9px] text-text-dim">3.0</p></div>
+                        <div><p className="font-bebas text-lg text-orange">D</p><p className="font-mono text-[9px] text-text-dim">45-49</p><p className="font-mono text-[9px] text-text-dim">2.0</p></div>
+                        <div><p className="font-bebas text-lg text-red/80">E</p><p className="font-mono text-[9px] text-text-dim">40-44</p><p className="font-mono text-[9px] text-text-dim">1.0</p></div>
+                        <div><p className="font-bebas text-lg text-red">F</p><p className="font-mono text-[9px] text-text-dim">0-39</p><p className="font-mono text-[9px] text-text-dim">0.0</p></div>
                     </div>
                 </div>
             </div>
+
+            {/* Score Entry Modal */}
+            <AnimatePresence>
+                {scoreModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="bg-bg-surface border border-gold/30 rounded-2xl p-6 w-full max-w-sm relative"
+                        >
+                            <button
+                                onClick={() => setScoreModal(null)}
+                                className="absolute top-4 right-4 text-text-muted hover:text-white"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                            <h3 className="font-bebas text-2xl mb-2 text-gold">Input Score</h3>
+                            <p className="font-mono text-[10px] text-text-dim uppercase tracking-widest mb-6 border-b border-border/50 pb-4">
+                                Enter CA (0-30) or Exam (0-70) score
+                            </p>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-dim block mb-2">Assessment Label</label>
+                                    <input
+                                        type="text"
+                                        value={scoreLabel}
+                                        onChange={(e) => setScoreLabel(e.target.value)}
+                                        placeholder="e.g. Midterm CA, Final Exam"
+                                        className="w-full bg-bg-base border border-border-2 rounded-lg px-4 py-3 font-mono text-sm uppercase focus:border-gold outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-dim block mb-2">Points</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        value={scoreVal}
+                                        onChange={(e) => setScoreVal(e.target.value)}
+                                        placeholder="0 - 100"
+                                        className="w-full bg-bg-base border border-border-2 rounded-lg px-4 py-3 font-bebas text-2xl tracking-widest focus:border-gold outline-none"
+                                    />
+                                </div>
+                                <button
+                                    onClick={addScore}
+                                    className="w-full bg-gold hover:bg-gold-light text-black font-bebas text-xl tracking-widest py-3 rounded-lg mt-2"
+                                >
+                                    Save Score
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

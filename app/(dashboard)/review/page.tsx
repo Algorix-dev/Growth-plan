@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { BookOpen, Flame, Target, TrendingUp, FileText, Save } from "lucide-react";
+import { BookOpen, Flame, Target, TrendingUp, FileText, Save, Printer } from "lucide-react";
 import { initialHabits, initialGoals, initialCourses } from "@/lib/data";
 
 function getWeekDates() {
@@ -128,7 +128,7 @@ export default function WeeklyReviewPage() {
             )}
 
             {/* Week Rating */}
-            <section className="space-y-3">
+            <section className="space-y-3 print:hidden">
                 <p className="font-mono text-[9px] uppercase tracking-widest text-text-dim">Rate This Week (1–10)</p>
                 <div className="flex gap-2 flex-wrap">
                     {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
@@ -170,8 +170,8 @@ export default function WeeklyReviewPage() {
                 </div>
             </section>
 
-            {/* Save */}
-            <div className="flex items-center gap-4 pb-8">
+            {/* Save & Export */}
+            <div className="flex items-center gap-4 pb-8 print:hidden">
                 <button
                     onClick={saveReview}
                     className="flex items-center gap-2 px-8 py-3 bg-gold text-bg-dark font-bebas text-lg tracking-widest rounded-sm hover:brightness-110 transition-all active:scale-95"
@@ -179,7 +179,14 @@ export default function WeeklyReviewPage() {
                     <Save className="w-4 h-4" />
                     {saved ? "SAVED ✓" : "SAVE REVIEW"}
                 </button>
-                <span className="font-mono text-[9px] text-text-dim uppercase tracking-widest">
+                <button
+                    onClick={() => window.print()}
+                    className="flex items-center gap-2 px-8 py-3 border border-border-2 text-text font-bebas text-lg tracking-widest rounded-sm hover:border-gold hover:text-gold transition-all active:scale-95"
+                >
+                    <Printer className="w-4 h-4" />
+                    EXPORT PDF
+                </button>
+                <span className="font-mono text-[9px] text-text-dim uppercase tracking-widest ml-auto">
                     Saved locally · {weekRange}
                 </span>
             </div>

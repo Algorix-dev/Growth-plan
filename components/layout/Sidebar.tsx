@@ -16,9 +16,12 @@ import {
     LogOut,
     ChevronLeft,
     ChevronRight,
-    ClipboardList
+    ClipboardList,
+    Moon,
+    Sun
 } from "lucide-react";
 import { useState } from "react";
+import { useTheme } from "@/components/providers/ThemeProvider";
 
 const navItems = [
     { label: "Overview", icon: LayoutDashboard, href: "/", section: "CORE" },
@@ -36,6 +39,7 @@ const navItems = [
 export default function Sidebar() {
     const pathname = usePathname();
     const [collapsed, setCollapsed] = useState(false);
+    const { theme, toggleTheme } = useTheme();
 
     const sections = ["CORE", "TRACK", "EXECUTE"];
 
@@ -111,17 +115,43 @@ export default function Sidebar() {
                     )}
                 </div>
 
-                <button
-                    onClick={() => setCollapsed(!collapsed)}
-                    className="w-full flex items-center gap-3 px-3 py-2 text-text-muted hover:text-text hover:bg-bg-elevated rounded-lg transition-all px-3"
-                >
-                    {collapsed ? <ChevronRight className="w-5 h-5 mx-auto" /> : (
-                        <>
-                            <ChevronLeft className="w-5 h-5" />
-                            <span className="font-mono text-[10px] tracking-wider uppercase">Collapse</span>
-                        </>
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => setCollapsed(!collapsed)}
+                        className={cn(
+                            "flex items-center justify-center gap-3 py-2 text-text-muted hover:text-text hover:bg-bg-elevated rounded-lg transition-all",
+                            collapsed ? "w-full" : "flex-1 px-3"
+                        )}
+                        title={collapsed ? "Expand Sidebar" : "Collapse"}
+                    >
+                        {collapsed ? <ChevronRight className="w-5 h-5" /> : (
+                            <>
+                                <ChevronLeft className="w-5 h-5" />
+                                <span className="font-mono text-[10px] tracking-wider uppercase">Collapse</span>
+                            </>
+                        )}
+                    </button>
+
+                    <button
+                        onClick={toggleTheme}
+                        className={cn(
+                            "flex items-center justify-center py-2 text-gold hover:bg-gold-dim rounded-lg transition-all",
+                            collapsed ? "w-full mt-2 hidden" : "w-10" // Hide when collapsed to save space or adjust as needed
+                        )}
+                        title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                    >
+                        {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                    </button>
+                    {collapsed && (
+                        <button
+                            onClick={toggleTheme}
+                            className="w-full flex items-center justify-center py-2 text-gold hover:bg-gold-dim rounded-lg transition-all mt-2"
+                            title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                        >
+                            {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                        </button>
                     )}
-                </button>
+                </div>
 
                 <button className="w-full flex items-center gap-3 px-3 py-2 text-red/60 hover:text-red hover:bg-red/5 rounded-lg transition-all">
                     <LogOut className="w-5 h-5" />

@@ -4,15 +4,11 @@
 
 @layer base {
   :root {
-    /* Backgrounds — layered dark */
+    /* Backgrounds — layered dark (DEFAULT) */
     --bg-base: #09090c;
-    /* deepest background */
     --bg-surface: #0f0f14;
-    /* cards, sidebar */
     --bg-elevated: #16161e;
-    /* modals, hover states */
     --bg-muted: #1c1c26;
-    /* input backgrounds */
 
     /* Borders */
     --border: #21212e;
@@ -25,19 +21,12 @@
 
     /* Semantic colors */
     --blue: #4a8fd4;
-    /* Academic / Study */
     --purple: #8e68c4;
-    /* Programming / Code */
     --green: #3abf6a;
-    /* Physical / Health */
     --red: #d94f4f;
-    /* Trading / Urgency */
     --teal: #38bfb0;
-    /* Social / Identity */
     --orange: #d47a2a;
-    /* Transit / Movement */
     --pink: #c45a8e;
-    /* Style / Aesthetics */
 
     /* Text */
     --text: #d8d8e8;
@@ -45,6 +34,29 @@
     --text-dim: #32323f;
 
     --radius: 0.5rem;
+  }
+
+  /* Light Theme Overrides */
+  .theme-light {
+    /* Backgrounds — layered light */
+    --bg-base: #f4f4f6;
+    --bg-surface: #ffffff;
+    --bg-elevated: #eaeaef;
+    --bg-muted: #dcdce2;
+
+    /* Borders */
+    --border: #dcdce2;
+    --border-2: #c4c4cd;
+
+    /* Accent — Gold stays but slightly darker for contrast on white */
+    --gold: #b38222;
+    --gold-light: #c9962e;
+    --gold-dim: rgba(179, 130, 34, 0.15);
+
+    /* Text */
+    --text: #1a1a24;
+    --text-muted: #5a5a78;
+    --text-dim: #a0a0b8;
   }
 }
 

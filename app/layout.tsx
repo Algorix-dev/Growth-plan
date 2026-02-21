@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Bebas_Neue, JetBrains_Mono, Crimson_Pro } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 
 const bebas = Bebas_Neue({
   weight: "400",
@@ -56,9 +57,11 @@ export default function RootLayout({
       <body
         className={`${bebas.variable} ${jetbrains.variable} ${crimson.variable} antialiased`}
       >
-        {children}
-        <Toaster position="bottom-right" theme="dark" closeButton />
-        <Script src="/sw-register.js" strategy="afterInteractive" />
+        <ThemeProvider>
+          {children}
+          <Toaster position="bottom-right" theme="dark" closeButton />
+          <Script src="/sw-register.js" strategy="afterInteractive" />
+        </ThemeProvider>
       </body>
     </html>
   );

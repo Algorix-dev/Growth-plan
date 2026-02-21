@@ -11,6 +11,7 @@ import {
     AlertTriangle
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import StreakHeatmap from "@/components/habits/StreakHeatmap";
 
 import { initialHabits } from "@/lib/data";
 
@@ -160,6 +161,8 @@ export default function HabitsPage() {
                     </table>
                 </div>
             </section>
+
+            <StreakHeatmap checkedState={checkedState} totalHabits={habits.length} />
 
             <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {(() => {
