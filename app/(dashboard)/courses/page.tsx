@@ -304,7 +304,9 @@ export default function CoursesPage() {
                     <div>
                         <h4 className="font-bebas text-xl">Unit Completion</h4>
                         <div className="flex items-center gap-2">
-                            <span className="text-2xl font-bebas text-blue">14 / 90</span>
+                            <span className="text-2xl font-bebas text-blue">
+                                {courses.reduce((acc, c) => acc + c.topics.filter(t => t.completed).length, 0)} / {courses.reduce((acc, c) => acc + c.topics.length, 0)}
+                            </span>
                             <span className="font-mono text-[10px] text-text-dim uppercase tracking-widest">Mastery Level</span>
                         </div>
                     </div>

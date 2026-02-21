@@ -28,12 +28,14 @@ export default function OverviewPage() {
         goals: "0%"
     });
 
+    const [pillarProgress, setPillarProgress] = useState([30, 40, 50, 60, 70, 80]);
+
     useEffect(() => {
         // Habits
         const savedHabits = localStorage.getItem("emmanuel_habits");
         if (savedHabits) {
             const habits = JSON.parse(savedHabits);
-            const today = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"][new Date().getDay() - 1] || "SUN";
+            const today = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"][new Date().getDay()];
             const checkedToday = Object.keys(habits).filter(k => k.endsWith(`-${today}`) && habits[k]).length;
             setStats(prev => ({ ...prev, habits: `${checkedToday} / 13` }));
         }
@@ -45,16 +47,42 @@ export default function OverviewPage() {
             setStats(prev => ({ ...prev, trades: trades.length.toString() }));
         }
 
-        // Goals
+        // Goals & Pillars
         const savedGoals = localStorage.getItem("emmanuel_goals");
         if (savedGoals) {
             const goals: Goal[] = JSON.parse(savedGoals);
             let total = 0;
             let done = 0;
+            const goalPcts: Record<string, number> = {};
+
             goals.forEach((g: Goal) => {
-                total += g.phases.length;
-                done += g.phases.filter((p) => p.done).length;
+                const gTotal = g.phases.length;
+                const gDone = g.phases.filter((p: any) => p.done).length;
+                const gPct = gTotal > 0 ? Math.round((gDone / gTotal) * 100) : 0;
+
+                total += gTotal;
+                done += gDone;
+                goalPcts[g.id] = gPct;
             });
+
+            // Pillars Mapping:
+            // 0: Technical Power -> g2 (Programming)
+            // 1: Mathematical Maturity -> g1 (Grades)
+            // 2: Financial Intelligence -> g3 (Trading)
+            // 3: Athletic Discipline -> g4 (Athletic)
+            // 4: Social Composure -> g5 (Social)
+            // 5: Spiritual Alignment -> g6 (Spiritual)
+            const pProgs = [
+                goalPcts["g2"] || 0,
+                goalPcts["g1"] || 0,
+                goalPcts["g3"] || 0,
+                goalPcts["g4"] || 0,
+                goalPcts["g5"] || 0,
+                goalPcts["g6"] || 0,
+            ];
+
+            setPillarProgress(pProgs);
+
             const pct = total > 0 ? Math.round((done / total) * 100) : 0;
             setStats(prev => ({ ...prev, goals: `${pct}%` }));
         }
@@ -176,7 +204,7 @@ export default function OverviewPage() {
                             <div className="h-1 bg-bg-muted rounded-full overflow-hidden">
                                 <motion.div
                                     initial={{ width: 0 }}
-                                    animate={{ width: `${30 + i * 10}%` }}
+                                    animate={{ width: `${pillarProgress[i]}%` }}
                                     transition={{ duration: 1, delay: 1 }}
                                     className={cn("h-full", `bg-${pillar.color}`)}
                                 />

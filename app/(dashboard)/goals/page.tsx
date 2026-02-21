@@ -200,11 +200,20 @@ export default function GoalsPage() {
                 </div>
                 <div className="flex gap-8">
                     <div className="text-center">
-                        <p className="font-bebas text-4xl text-gold">42%</p>
+                        <p className="font-bebas text-4xl text-gold">
+                            {goals.length > 0
+                                ? Math.round(goals.reduce((acc, g) => acc + (g.phases.filter(p => p.done).length / g.phases.length), 0) / goals.length * 100)
+                                : 0}%
+                        </p>
                         <p className="font-mono text-[9px] uppercase tracking-widest text-text-dim">Overall Completion</p>
                     </div>
                     <div className="text-center border-l border-border pl-8">
-                        <p className="font-bebas text-4xl text-blue">2</p>
+                        <p className="font-bebas text-4xl text-blue">
+                            {goals.filter(g => {
+                                const done = g.phases.filter(p => p.done).length;
+                                return done > 0 && done < g.phases.length;
+                            }).length}
+                        </p>
                         <p className="font-mono text-[9px] uppercase tracking-widest text-text-dim">Missions Active</p>
                     </div>
                 </div>

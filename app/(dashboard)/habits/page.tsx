@@ -142,20 +142,49 @@ export default function HabitsPage() {
             </section>
 
             <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {[
-                    { label: "Overall Completion", val: "68%", icon: TrendingUp, color: "text-blue" },
-                    { label: "Pillar Performance", val: "Academic (92%)", icon: Award, color: "text-gold" },
-                    { label: "Best Streak", val: "3AM Wake (14d)", icon: Flame, color: "text-red" },
-                    { label: "Critical Gaps", val: "Posture (32%)", icon: AlertTriangle, color: "text-orange" },
-                ].map(stat => (
-                    <div key={stat.label} className="bg-bg-surface border border-border p-6 rounded-xl space-y-2">
-                        <div className="flex items-center justify-between">
-                            <stat.icon className={cn("w-5 h-5", stat.color)} />
-                            <span className="font-bebas text-2xl">{stat.val}</span>
+                {(() => {
+                    let totalChecks = 0;
+                    const catScores: Record<string, { total: number, checked: number }> = {};
+                    const habitScores: { label: string, pct: number }[] = [];
+
+                    habits.forEach(h => {
+                        let hChecks = 0;
+                        days.forEach(d => { if (checkedState[`${h.label}-${d}`]) hChecks++; });
+                        totalChecks += hChecks;
+                        habitScores.push({ label: h.label, pct: Math.round((hChecks / 7) * 100) });
+
+                        if (!catScores[h.category]) catScores[h.category] = { total: 0, checked: 0 };
+                        catScores[h.category].total += 7;
+                        catScores[h.category].checked += hChecks;
+                    });
+
+                    const overallPct = habits.length > 0 ? Math.round((totalChecks / (habits.length * 7)) * 100) : 0;
+
+                    const sortedHabits = [...habitScores].sort((a, b) => b.pct - a.pct);
+                    const bestHabit = sortedHabits[0];
+                    const worstHabit = [...habitScores].sort((a, b) => a.pct - b.pct)[0];
+
+                    const sortedCats = Object.entries(catScores).map(([name, s]) => ({
+                        name,
+                        pct: Math.round((s.checked / s.total) * 100)
+                    })).sort((a, b) => b.pct - a.pct);
+                    const bestCat = sortedCats[0];
+
+                    return [
+                        { label: "Overall Completion", val: `${overallPct}%`, icon: TrendingUp, color: "text-blue" },
+                        { label: "Pillar Performance", val: bestCat ? `${bestCat.name} (${bestCat.pct}%)` : "N/A", icon: Award, color: "text-gold" },
+                        { label: "Best Habit", val: bestHabit ? `${bestHabit.label} (${bestHabit.pct}%)` : "N/A", icon: Flame, color: "text-red" },
+                        { label: "Critical Gaps", val: worstHabit ? `${worstHabit.label} (${worstHabit.pct}%)` : "N/A", icon: AlertTriangle, color: "text-orange" },
+                    ].map(stat => (
+                        <div key={stat.label} className="bg-bg-surface border border-border p-6 rounded-xl space-y-2">
+                            <div className="flex items-center justify-between">
+                                <stat.icon className={cn("w-5 h-5", stat.color)} />
+                                <span className="font-bebas text-2xl">{stat.val}</span>
+                            </div>
+                            <p className="font-mono text-[10px] uppercase tracking-widest text-text-dim">{stat.label}</p>
                         </div>
-                        <p className="font-mono text-[10px] uppercase tracking-widest text-text-dim">{stat.label}</p>
-                    </div>
-                ))}
+                    ));
+                })()}
             </section>
         </div>
     );
