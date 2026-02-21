@@ -49,7 +49,7 @@ export default function LoginPage() {
                     <div className="text-center mb-8">
                         <h1 className="font-bebas text-5xl tracking-tighter text-gold mb-2">EP <span className="text-text-dim">·</span> OS</h1>
                         <p className="font-serif italic text-text-muted text-sm tracking-wide">
-                            "Build in the dark. Shine in the light."
+                            &quot;Build in the dark. Shine in the light.&quot;
                         </p>
                     </div>
 
