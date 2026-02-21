@@ -32,13 +32,31 @@ export default function OverviewPage() {
     const [pillarProgress, setPillarProgress] = useState([30, 40, 50, 60, 70, 80]);
 
     useEffect(() => {
-        // Habits
+        // Habits & Streak
         const savedHabits = localStorage.getItem("emmanuel_habits");
         if (savedHabits) {
             const habits = JSON.parse(savedHabits);
             const today = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"][new Date().getDay()];
+            const habitLabels = [
+                '3AM Wake-up', 'Manna Devotion', 'Morning Prayer', 'Academic Self-Study (2+ hrs)',
+                'LeetCode / Coding Session', 'Calisthenics Training', 'Flexibility / Stretching',
+                'Trading Chart Study', 'Trade Journal Updated', 'Grooming & Style Check',
+                'Posture Check (hourly)', 'Daily Review Written', '9PM Sleep — no exceptions'
+            ];
+
             const checkedToday = Object.keys(habits).filter(k => k.endsWith(`-${today}`) && habits[k]).length;
-            setStats(prev => ({ ...prev, habits: `${checkedToday} / 13` }));
+
+            // Calculate Weekly Streak (Total completion % for the week)
+            let totalChecked = 0;
+            Object.values(habits).forEach(v => { if (v) totalChecked++; });
+            const totalSlots = habitLabels.length * 7;
+            const streakPct = totalSlots > 0 ? Math.round((totalChecked / totalSlots) * 100) : 0;
+
+            setStats(prev => ({
+                ...prev,
+                habits: `${checkedToday} / 13`,
+                streak: `${streakPct}%`
+            }));
         }
 
         // Trades
@@ -152,7 +170,7 @@ export default function OverviewPage() {
             <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 {[
                     { label: "Habits Today", value: stats.habits, icon: CheckCircle2, color: "text-gold" },
-                    { label: "Weekly Streak", value: "94%", icon: Flame, color: "text-red" },
+                    { label: "Weekly Streak", value: stats.streak, icon: Flame, color: "text-red" },
                     { label: "Topics Self-Studied", value: stats.topics, icon: BookOpen, color: "text-blue" },
                     { label: "Trades Logged", value: stats.trades, icon: TrendingUp, color: "text-purple" },
                     { label: "Goals Progress", value: stats.goals, icon: Target, color: "text-green" },
