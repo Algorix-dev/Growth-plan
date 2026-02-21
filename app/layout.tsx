@@ -21,9 +21,29 @@ const crimson = Crimson_Pro({
   variable: "--font-serif",
 });
 
+import Script from "next/script";
+
+export const viewport = {
+  themeColor: "#0E0E0E",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 export const metadata: Metadata = {
   title: "EP · OS | Personal Development OS",
   description: "Emmanuel Peter's Personal Operating System for the Forging Phase.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "EP · OS",
+  },
+  icons: {
+    icon: "/api/icon?size=192",
+    apple: "/api/icon?size=192",
+  },
 };
 
 export default function RootLayout({
@@ -38,6 +58,7 @@ export default function RootLayout({
       >
         {children}
         <Toaster position="bottom-right" theme="dark" closeButton />
+        <Script src="/sw-register.js" strategy="afterInteractive" />
       </body>
     </html>
   );

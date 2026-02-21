@@ -1,9 +1,9 @@
 "use client"
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { MapPin, Info } from "lucide-react";
+import { MapPin, Info, Timer, Play, Pause, StopCircle } from "lucide-react";
 
 const days = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
@@ -167,8 +167,87 @@ export default function SchedulePage() {
         style: "bg-pink",
     };
 
+    // Pomodoro Timer
+    const [focusTask, setFocusTask] = useState<string | null>(null);
+    const [focusSeconds, setFocusSeconds] = useState(90 * 60);
+    const [focusRunning, setFocusRunning] = useState(false);
+    const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+    useEffect(() => {
+        if (focusRunning) {
+            timerRef.current = setInterval(() => {
+                setFocusSeconds(s => {
+                    if (s <= 1) {
+                        clearInterval(timerRef.current!);
+                        setFocusRunning(false);
+                        return 0;
+                    }
+                    return s - 1;
+                });
+            }, 1000);
+        } else {
+            if (timerRef.current) clearInterval(timerRef.current);
+        }
+        return () => { if (timerRef.current) clearInterval(timerRef.current); };
+    }, [focusRunning]);
+
+    const startFocus = (taskTitle: string) => {
+        setFocusTask(taskTitle);
+        setFocusSeconds(90 * 60);
+        setFocusRunning(true);
+    };
+
+    const stopFocus = () => {
+        setFocusTask(null);
+        setFocusRunning(false);
+        setFocusSeconds(90 * 60);
+    };
+
+    const fmtTime = (secs: number) => {
+        const m = Math.floor(secs / 60).toString().padStart(2, "0");
+        const s = (secs % 60).toString().padStart(2, "0");
+        return `${m}:${s}`;
+    };
+
     return (
         <div className="space-y-8">
+            {/* Pomodoro / Focus Timer Banner */}
+            <AnimatePresence>
+                {focusTask && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        className="fixed top-4 right-4 z-50 bg-bg-surface border border-gold/40 shadow-[0_0_30px_rgba(212,175,55,0.2)] rounded-xl p-4 flex items-center gap-4 min-w-[280px]"
+                    >
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                                <div className={`w-2 h-2 rounded-full ${focusRunning ? "bg-green animate-pulse" : "bg-gold"}`} />
+                                <span className="font-mono text-[9px] uppercase tracking-widest text-text-dim">
+                                    {focusRunning ? "Deep Work" : "Paused"}
+                                </span>
+                            </div>
+                            <p className="font-bebas text-2xl text-gold leading-none">{fmtTime(focusSeconds)}</p>
+                            <p className="font-mono text-[9px] text-text-dim truncate">{focusTask}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setFocusRunning(r => !r)}
+                                className="p-2 bg-bg-elevated rounded-lg hover:bg-gold/10 text-text-muted hover:text-gold transition-all"
+                            >
+                                {focusRunning ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                            </button>
+                            <button
+                                onClick={stopFocus}
+                                className="p-2 bg-bg-elevated rounded-lg hover:bg-red/10 text-text-muted hover:text-red transition-all"
+                            >
+                                <StopCircle className="w-4 h-4" />
+                            </button>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <header className="space-y-4">
                 <div className="flex items-center gap-4">
                     <h1 className="text-3xl font-bebas tracking-wider">Weekly Schedule</h1>
@@ -246,15 +325,20 @@ export default function SchedulePage() {
                                             dotColors[block.cat]
                                         )} />
 
-                                        <div className={cn(
-                                            "flex items-center gap-4 p-4 rounded-xl border transition-all hover:bg-bg-elevated/50",
-                                            catColors[block.cat]
-                                        )}>
+                                        <div
+                                            className={cn(
+                                                "flex items-center gap-4 p-4 rounded-xl border transition-all hover:bg-bg-elevated/50 cursor-pointer group/block",
+                                                catColors[block.cat]
+                                            )}
+                                            onClick={() => startFocus(block.title)}
+                                            title="Click to start focus timer"
+                                        >
                                             <span className="font-serif text-lg">{block.emoji}</span>
                                             <div className="flex-1">
                                                 <h4 className="font-mono text-xs font-semibold uppercase tracking-tight">{block.title}</h4>
                                                 <p className="font-mono text-[10px] text-current opacity-60">Duration: {block.dur}</p>
                                             </div>
+                                            <Timer className="w-3.5 h-3.5 opacity-0 group-hover/block:opacity-40 transition-opacity shrink-0" />
                                         </div>
                                     </div>
                                 ))}

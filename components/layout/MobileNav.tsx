@@ -8,7 +8,7 @@ import {
     Calendar,
     CheckCircle2,
     TrendingUp,
-    MoreHorizontal
+    ClipboardList
 } from "lucide-react";
 
 const mobileItems = [
@@ -16,7 +16,7 @@ const mobileItems = [
     { label: "Schedule", icon: Calendar, href: "/schedule" },
     { label: "Habits", icon: CheckCircle2, href: "/habits" },
     { label: "Trades", icon: TrendingUp, href: "/trades" },
-    { label: "More", icon: MoreHorizontal, href: "/rules" }, // Using Rules as "More" for now
+    { label: "Review", icon: ClipboardList, href: "/review" },
 ];
 
 export default function MobileNav() {

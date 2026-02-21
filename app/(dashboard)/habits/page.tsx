@@ -58,7 +58,16 @@ export default function HabitsPage() {
 
     const toggleHabit = (habitLabel: string, day: string) => {
         const key = `${habitLabel}-${day}`;
-        setCheckedState(prev => ({ ...prev, [key]: !prev[key] }));
+        setCheckedState(prev => {
+            const next = { ...prev, [key]: !prev[key] };
+            // Auto-start: record plan start date on first ever habit tick
+            if (next[key] && !localStorage.getItem("emmanuel_start_date")) {
+                const now = new Date().toISOString();
+                localStorage.setItem("emmanuel_start_date", now);
+                setDateRange(`${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – …`);
+            }
+            return next;
+        });
     };
 
     return (

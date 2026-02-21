@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import {
     ChevronRight,
@@ -129,6 +129,43 @@ export default function GoalsPage() {
                                 <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-text-dim">Mission Objective</span>
                                 <ChevronRight className="w-4 h-4 text-text-dim group-hover:text-gold transition-colors" />
                             </div>
+
+                            {/* Confetti burst when goal hits 100% */}
+                            <AnimatePresence>
+                                {pct === 100 && (
+                                    <motion.div
+                                        key="confetti"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        className="absolute inset-0 pointer-events-none flex items-center justify-center rounded-2xl overflow-hidden"
+                                    >
+                                        <div className="absolute inset-0 bg-gold/5" />
+                                        {[...Array(16)].map((_, k) => (
+                                            <motion.div
+                                                key={k}
+                                                initial={{ opacity: 1, x: 0, y: 0, scale: 1 }}
+                                                animate={{
+                                                    opacity: 0,
+                                                    x: Math.cos((k / 16) * Math.PI * 2) * 120,
+                                                    y: Math.sin((k / 16) * Math.PI * 2) * 120,
+                                                    scale: 0,
+                                                }}
+                                                transition={{ duration: 1.2, delay: k * 0.03, ease: "easeOut" }}
+                                                className="absolute w-2 h-2 rounded-full"
+                                                style={{ backgroundColor: k % 2 === 0 ? "#D4AF37" : "#fff" }}
+                                            />
+                                        ))}
+                                        <motion.span
+                                            initial={{ scale: 0.5, opacity: 0 }}
+                                            animate={{ scale: 1, opacity: 1 }}
+                                            className="font-bebas text-5xl text-gold z-10"
+                                        >
+                                            DONE
+                                        </motion.span>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </motion.div>
                     );
                 })}

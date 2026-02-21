@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import {
@@ -8,10 +8,42 @@ import {
     BookOpen,
     TrendingUp,
     Target,
-    Flame
+    Flame,
+    Timer
 } from "lucide-react";
 
 import { initialGoals, initialCourses, initialHabits, Goal, Course } from "@/lib/data";
+
+// Daily rotating quotes
+const QUOTES = [
+    "3AM while the world sleeps. First class while others cram. Composed while others perform. Nobody sees the work. Everyone sees the result.",
+    "The man who wakes at 3AM owns the day before it begins. Every rep competes with comfort. Choose the rep.",
+    "Discipline is choosing what you want most over what you want now. First class. Every day.",
+    "You are one decision away from a completely different life. Make the decision. Every morning.",
+    "The forge doesn't care how you feel. Show up. Get shaped. That is the path.",
+    "Silence is the weapon of the man who is building. Let the result speak first.",
+    "Hunger beats talent. Talent beats skill. Skill beats luck. Hunger beats everything.",
+];
+function getDailyQuote() {
+    const start = new Date(new Date().getFullYear(), 0, 0);
+    const day = Math.floor((Date.now() - start.getTime()) / 86400000);
+    return QUOTES[day % QUOTES.length];
+}
+
+// 18th Birthday countdown — update BIRTHDAY to your real date
+const BIRTHDAY = new Date("2008-05-27T00:00:00");
+function getBirthdayCountdown() {
+    const now = new Date();
+    const eighteenth = new Date(BIRTHDAY);
+    eighteenth.setFullYear(BIRTHDAY.getFullYear() + 18);
+    if (eighteenth <= now) eighteenth.setFullYear(eighteenth.getFullYear() + 1);
+    const diff = eighteenth.getTime() - now.getTime();
+    return {
+        days: Math.floor(diff / 86400000),
+        hours: Math.floor((diff % 86400000) / 3600000),
+        mins: Math.floor((diff % 3600000) / 60000),
+    };
+}
 
 export default function OverviewPage() {
     const [stats, setStats] = useState({
@@ -24,6 +56,14 @@ export default function OverviewPage() {
 
     const [pillarProgress, setPillarProgress] = useState([0, 0, 0, 0, 0, 0]);
     const [startDate, setStartDate] = useState<string | null>(null);
+    const [countdown, setCountdown] = useState(getBirthdayCountdown());
+    const [quote] = useState(getDailyQuote());
+
+    // Tick the birthday countdown every minute
+    useEffect(() => {
+        const id = setInterval(() => setCountdown(getBirthdayCountdown()), 60000);
+        return () => clearInterval(id);
+    }, []);
 
     useEffect(() => {
         // --- Start Date ---
@@ -99,63 +139,72 @@ export default function OverviewPage() {
         setStats(prev => ({ ...prev, topics: `${cDone} / ${cTotal}` }));
     }, []);
 
-    const startPlan = () => {
-        const now = new Date().toISOString();
-        localStorage.setItem("emmanuel_start_date", now);
-        setStartDate(now);
-        window.location.reload(); // Refresh to update all relative dates
-    };
+    const resetPlan = useCallback(() => {
+        if (confirm("Restart your Growth Plan? Week 1 will begin from today.")) {
+            const now = new Date().toISOString();
+            localStorage.setItem("emmanuel_start_date", now);
+            setStartDate(now);
+        }
+    }, []);
 
     return (
         <div className="space-y-12">
             {/* Hero Section */}
             <section className="relative overflow-hidden py-12 border-b border-border">
-                <div className="absolute top-0 right-0 font-bebas text-[15rem] leading-none text-gold/5 pointer-events-none select-none hidden md:block">
+                {/* Decorative background — desktop only, behind content */}
+                <div className="absolute top-0 right-0 font-bebas text-[15rem] leading-none text-gold/5 pointer-events-none select-none hidden md:block" aria-hidden>
                     EP
                 </div>
 
                 <div className="relative z-10 space-y-6">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                        <div className="space-y-6">
-                            <motion.p
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="font-mono text-[10px] tracking-[0.3em] uppercase text-gold"
-                            >
-                                Emmanuel Peter · 200L · Nigeria · Forging Phase
-                            </motion.p>
+                    <motion.p
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="font-mono text-[10px] tracking-[0.3em] uppercase text-gold"
+                    >
+                        Emmanuel Peter · 200L · Nigeria · Forging Phase
+                    </motion.p>
 
-                            <motion.h1
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.1 }}
-                                className="text-6xl md:text-8xl font-bebas leading-[0.9] tracking-tight"
-                            >
-                                Build in the <span className="text-gold">dark.</span><br />
-                                Shine in the <span className="text-gold">light.</span>
-                            </motion.h1>
-                        </div>
+                    <motion.h1
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                        className="text-6xl md:text-8xl font-bebas leading-[0.9] tracking-tight max-w-2xl"
+                    >
+                        Build in the <span className="text-gold">dark.</span><br />
+                        Shine in the <span className="text-gold">light.</span>
+                    </motion.h1>
 
-                        {!startDate && (
-                            <motion.button
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                onClick={startPlan}
-                                className="px-8 py-4 bg-gold text-bg-dark font-bebas text-2xl tracking-widest rounded-sm hover:bg-gold-light transition-all active:scale-95 shadow-[0_0_30px_rgba(212,175,55,0.3)]"
-                            >
-                                START GROWTH PLAN
-                            </motion.button>
-                        )}
-                    </div>
-
+                    {/* Daily rotating quote */}
                     <motion.p
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.2 }}
-                        className="font-serif italic text-lg text-text-muted max-w-lg leading-relaxed"
+                        className="font-serif italic text-base text-text-muted max-w-xl leading-relaxed"
                     >
-                        &quot;3AM while the world sleeps. First class while others cram. Composed while others perform. Nobody sees the work. Everyone sees the result.&quot;
+                        &quot;{quote}&quot;
                     </motion.p>
+
+                    {/* Birthday Countdown */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.25 }}
+                        className="flex items-center gap-2 flex-wrap"
+                    >
+                        <Timer className="w-3 h-3 text-gold shrink-0" />
+                        <span className="font-mono text-[9px] uppercase tracking-widest text-text-dim">18th Birthday:</span>
+                        {[
+                            { val: countdown.days, label: "d" },
+                            { val: countdown.hours, label: "h" },
+                            { val: countdown.mins, label: "m" },
+                        ].map(({ val, label }) => (
+                            <span key={label} className="font-bebas text-xl text-gold leading-none">
+                                {val}<span className="font-mono text-[8px] text-text-dim ml-0.5">{label}</span>
+                            </span>
+                        ))}
+                        <span className="font-mono text-[9px] text-text-dim tracking-widest">remaining</span>
+                    </motion.div>
 
                     <div className="flex flex-wrap gap-2">
                         {["3AM Wake", "9 Courses", "First Class Target", "Programming Mastery", "Trading Independence"].map((chip) => (
@@ -163,6 +212,23 @@ export default function OverviewPage() {
                                 {chip}
                             </span>
                         ))}
+                    </div>
+
+                    {/* Plan status — no big button, auto-starts on first habit tick */}
+                    <div className="flex items-center gap-3">
+                        {startDate ? (
+                            <>
+                                <span className="font-mono text-[9px] uppercase tracking-widest text-green">● Growth Plan Active</span>
+                                <span className="text-border">|</span>
+                                <button onClick={resetPlan} className="font-mono text-[9px] uppercase tracking-widest text-text-dim hover:text-red transition-colors">
+                                    Restart
+                                </button>
+                            </>
+                        ) : (
+                            <span className="font-mono text-[9px] uppercase tracking-widest text-text-dim">
+                                Check your first habit to begin week tracking →
+                            </span>
+                        )}
                     </div>
                 </div>
             </section>

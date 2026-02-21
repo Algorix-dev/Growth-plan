@@ -40,6 +40,15 @@ export default function CoursesPage() {
         }));
     };
 
+    // Live GPA Estimate: each course progress % mapped to 5.0 scale
+    const gpa = courses.length > 0
+        ? (courses.reduce((acc, c) => {
+            const pct = c.topics.filter(t => t.completed).length / c.topics.length;
+            // 0% = 1.0, 100% = 5.0 (5.0 scale)
+            return acc + (1 + pct * 4);
+        }, 0) / courses.length).toFixed(2)
+        : "0.00";
+
     return (
         <div className="space-y-8">
             <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -48,12 +57,15 @@ export default function CoursesPage() {
                         <h1 className="text-3xl font-bebas tracking-wider">Academic Command</h1>
                         <div className="h-px bg-border flex-1" />
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                         <span className="px-3 py-1 bg-blue/10 border border-blue/20 text-blue font-mono text-[9px] uppercase tracking-widest rounded-sm">
                             Target: 5.0 GPA
                         </span>
                         <span className="px-3 py-1 bg-bg-surface border border-border text-text-muted font-mono text-[9px] uppercase tracking-widest rounded-sm">
                             9 Active Courses
+                        </span>
+                        <span className={`px-3 py-1 border font-mono text-[9px] uppercase tracking-widest rounded-sm ${parseFloat(gpa) >= 4.5 ? 'bg-green/10 border-green/20 text-green' : parseFloat(gpa) >= 3.5 ? 'bg-gold/10 border-gold/20 text-gold' : 'bg-red/10 border-red/20 text-red'}`}>
+                            Projected CGPA: {gpa} / 5.0
                         </span>
                     </div>
                 </div>
