@@ -12,13 +12,56 @@ import {
 } from "lucide-react";
 
 export default function OverviewPage() {
-    const [tradeCount, setTradeCount] = useState(0);
+    const [stats, setStats] = useState({
+        habits: "0 / 13",
+        streak: "0%",
+        topics: "0 / 41",
+        trades: "0",
+        goals: "0%"
+    });
 
     useEffect(() => {
-        const saved = localStorage.getItem("emmanuel_trades");
-        if (saved) {
-            const trades = JSON.parse(saved);
-            setTradeCount(trades.length);
+        // Habits
+        const savedHabits = localStorage.getItem("emmanuel_habits");
+        if (savedHabits) {
+            const habits = JSON.parse(savedHabits);
+            const today = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"][new Date().getDay() - 1] || "SUN";
+            const checkedToday = Object.keys(habits).filter(k => k.endsWith(`-${today}`) && habits[k]).length;
+            setStats(prev => ({ ...prev, habits: `${checkedToday} / 13` }));
+        }
+
+        // Trades
+        const savedTrades = localStorage.getItem("emmanuel_trades");
+        if (savedTrades) {
+            const trades = JSON.parse(savedTrades);
+            setStats(prev => ({ ...prev, trades: trades.length.toString() }));
+        }
+
+        // Goals
+        const savedGoals = localStorage.getItem("emmanuel_goals");
+        if (savedGoals) {
+            const goals = JSON.parse(savedGoals);
+            let total = 0;
+            let done = 0;
+            goals.forEach((g: any) => {
+                total += g.phases.length;
+                done += g.phases.filter((p: any) => p.done).length;
+            });
+            const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+            setStats(prev => ({ ...prev, goals: `${pct}%` }));
+        }
+
+        // Courses
+        const savedCourses = localStorage.getItem("emmanuel_courses");
+        if (savedCourses) {
+            const courses = JSON.parse(savedCourses);
+            let total = 0;
+            let done = 0;
+            courses.forEach((c: any) => {
+                total += c.topics.length;
+                done += c.topics.filter((t: any) => t.completed).length;
+            });
+            setStats(prev => ({ ...prev, topics: `${done} / ${total}` }));
         }
     }, []);
 
@@ -71,11 +114,11 @@ export default function OverviewPage() {
             {/* Stats Grid */}
             <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 {[
-                    { label: "Habits Today", value: "0 / 13", icon: CheckCircle2, color: "text-gold" },
+                    { label: "Habits Today", value: stats.habits, icon: CheckCircle2, color: "text-gold" },
                     { label: "Weekly Streak", value: "94%", icon: Flame, color: "text-red" },
-                    { label: "Topics Self-Studied", value: "42 / 90", icon: BookOpen, color: "text-blue" },
-                    { label: "Trades Logged", value: tradeCount.toString(), icon: TrendingUp, color: "text-purple" },
-                    { label: "Goals Progress", value: "24%", icon: Target, color: "text-green" },
+                    { label: "Topics Self-Studied", value: stats.topics, icon: BookOpen, color: "text-blue" },
+                    { label: "Trades Logged", value: stats.trades, icon: TrendingUp, color: "text-purple" },
+                    { label: "Goals Progress", value: stats.goals, icon: Target, color: "text-green" },
                 ].map((stat, i) => (
                     <motion.div
                         key={stat.label}
