@@ -221,3 +221,131 @@ export const initialHabits: Habit[] = [
     { label: 'Daily Review Written', category: 'Discipline', color: 'border-gold-light text-gold-light' },
     { label: '9PM Sleep — no exceptions', category: 'Foundation', color: 'border-gold text-gold' },
 ];
+
+export const days = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
+
+export interface ScheduleBlock {
+    time: string;
+    cat: string;
+    emoji: string;
+    title: string;
+    dur: string;
+}
+
+export interface DayData {
+    courses: string;
+    tag: string;
+    blocks: ScheduleBlock[];
+}
+
+export const scheduleData: Record<string, DayData> = {
+    MON: {
+        courses: "COS202 (11AM–1PM) · CUACOS216 (2PM–4PM)",
+        tag: "2 Lectures · Busy Day",
+        blocks: [
+            { time: "3:00AM", cat: "spirit", emoji: "🙏", title: "Manna devotion + focused prayer", dur: "30m" },
+            { time: "3:30AM", cat: "study", emoji: "📖", title: "COS202 self-study — OOP theory", dur: "60m" },
+            { time: "4:30AM", cat: "study", emoji: "📖", title: "CUACOS216 self-study — graphics concepts", dur: "45m" },
+            { time: "5:15AM", cat: "code", emoji: "💻", title: "LeetCode / OOP project work", dur: "45m" },
+            { time: "6:00AM", cat: "body", emoji: "🤸", title: "Calisthenics — Push + Core circuit", dur: "40m" },
+            { time: "6:40AM", cat: "style", emoji: "🪞", title: "Shower · Grooming · Fit selection", dur: "35m" },
+            { time: "7:15AM", cat: "transit", emoji: "🚌", title: "First bus to campus · Audio revision", dur: "30m" },
+            { time: "7:45AM", cat: "study", emoji: "📖", title: "On-campus prep — review COS202 notes", dur: "75m" },
+            { time: "9:00AM", cat: "break", emoji: "☕", title: "Breakfast on campus · Social time", dur: "60m" },
+            { time: "11:00AM", cat: "lecture", emoji: "🏫", title: "COS202 — Computer Programming II", dur: "120m" },
+            { time: "1:00PM", cat: "break", emoji: "🍽️", title: "Lunch + rest", dur: "60m" },
+            { time: "2:00PM", cat: "lecture", emoji: "🏫", title: "CUACOS216 — Introduction to Graphics", dur: "120m" },
+            { time: "4:00PM", cat: "transit", emoji: "🚌", title: "Return bus · Reflection", dur: "30m" },
+            { time: "4:30PM", cat: "trade", emoji: "📈", title: "Market analysis · Chart structure", dur: "45m" },
+            { time: "5:15PM", cat: "body", emoji: "🏀", title: "Basketball / football", dur: "50m" },
+            { time: "6:05PM", cat: "review", emoji: "📝", title: "Daily academic review", dur: "40m" },
+            { time: "9:00PM", cat: "sleep", emoji: "💤", title: "Sleep. Exactly 6 hours.", dur: "6h" },
+        ]
+    },
+    TUE: {
+        courses: "INS204 (9AM–11AM) · CUACSC214 (11AM–1PM) · COS202 (2PM–3PM)",
+        tag: "3 Lectures · Heaviest Day",
+        blocks: [
+            { time: "3:00AM", cat: "spirit", emoji: "🙏", title: "Manna + prayer", dur: "25m" },
+            { time: "3:25AM", cat: "study", emoji: "📖", title: "INS204 self-study — frameworks", dur: "55m" },
+            { time: "4:20AM", cat: "study", emoji: "📖", title: "CUACSC214 self-study — data vis", dur: "55m" },
+            { time: "5:15AM", cat: "study", emoji: "📖", title: "COS202 Tuesday content revision", dur: "30m" },
+            { time: "9:00AM", cat: "lecture", emoji: "🏫", title: "INS204 — Systems Analysis & Design", dur: "120m" },
+            { time: "11:00AM", cat: "lecture", emoji: "🏫", title: "CUACSC214 — Data Visualisation", dur: "120m" },
+            { time: "2:00PM", cat: "lecture", emoji: "🏫", title: "COS202 — Computer Programming II", dur: "60m" },
+            { time: "9:00PM", cat: "sleep", emoji: "💤", title: "Sleep. Recover fully.", dur: "6h" },
+        ]
+    },
+    WED: {
+        courses: "MTH202 (9AM–11AM)",
+        tag: "1 Lecture · Focused Day",
+        blocks: [
+            { time: "3:00AM", cat: "spirit", emoji: "🙏", title: "Manna + Prayer Force", dur: "30m" },
+            { time: "3:30AM", cat: "study", emoji: "📖", title: "MTH202 Deep Study — Differential Eq", dur: "90m" },
+            { time: "5:00AM", cat: "code", emoji: "💻", title: "Project Work — Backend logic", dur: "60m" },
+            { time: "6:00AM", cat: "body", emoji: "🧘", title: "Flexibility & Mobility Session", dur: "30m" },
+            { time: "9:00AM", cat: "lecture", emoji: "🏫", title: "MTH202 — Elementary Differential Equations", dur: "120m" },
+            { time: "11:30AM", cat: "study", emoji: "📖", title: "Library session — MTH202 revision", dur: "90m" },
+            { time: "1:00PM", cat: "break", emoji: "🍽️", title: "Lunch", dur: "45m" },
+            { time: "2:00PM", cat: "study", emoji: "📖", title: "Academic Self-Study (GST/DEP)", dur: "120m" },
+            { time: "4:30PM", cat: "trade", emoji: "📈", title: "Market session — BOS identification", dur: "60m" },
+            { time: "9:00PM", cat: "sleep", emoji: "💤", title: "Sleep. Rest is discipline.", dur: "6h" },
+        ]
+    },
+    THU: {
+        courses: "GST212 (9AM–11AM) · DEP202 (2PM–4PM)",
+        tag: "2 Lectures · Strategic Day",
+        blocks: [
+            { time: "3:00AM", cat: "spirit", emoji: "🙏", title: "Manna + Prayer", dur: "30m" },
+            { time: "3:30AM", cat: "study", emoji: "📖", title: "GST212 Logic & Philosophy prep", dur: "60m" },
+            { time: "4:30AM", cat: "study", emoji: "📖", title: "DEP202 Business Canvas study", dur: "60m" },
+            { time: "5:30AM", cat: "code", emoji: "💻", title: "LeetCode Daily Challenge", dur: "45m" },
+            { time: "9:00AM", cat: "lecture", emoji: "🏫", title: "GST212 — Philosophy & Logic", dur: "120m" },
+            { time: "2:00PM", cat: "lecture", emoji: "🏫", title: "DEP202 — Digital Entrepreneurship III", dur: "120m" },
+            { time: "4:30PM", cat: "body", emoji: "🏀", title: "Basketball Training", dur: "90m" },
+            { time: "9:00PM", cat: "sleep", emoji: "💤", title: "Sleep.", dur: "6h" },
+        ]
+    },
+    FRI: {
+        courses: "CUACOS212 (9AM–11AM) · IFT212 (11AM–1PM)",
+        tag: "2 Lectures · End Strong",
+        blocks: [
+            { time: "3:00AM", cat: "spirit", emoji: "🙏", title: "Manna + Prayer", dur: "30m" },
+            { time: "3:30AM", cat: "study", emoji: "📖", title: "CUACOS212 Probability theory", dur: "60m" },
+            { time: "4:30AM", cat: "study", emoji: "📖", title: "IFT212 Arch & Org prep", dur: "60m" },
+            { time: "5:30AM", cat: "body", emoji: "🤸", title: "Calisthenics — Pull session", dur: "45m" },
+            { time: "9:00AM", cat: "lecture", emoji: "🏫", title: "CUACOS212 — Probability Theory", dur: "120m" },
+            { time: "11:00AM", cat: "lecture", emoji: "🏫", title: "IFT212 — Computer Architecture", dur: "120m" },
+            { time: "1:30PM", cat: "review", emoji: "📝", title: "Weekly review initiation", dur: "60m" },
+            { time: "4:30PM", cat: "trade", emoji: "📈", title: "End of week market review", dur: "60m" },
+            { time: "9:00PM", cat: "sleep", emoji: "💤", title: "Sleep.", dur: "6h" },
+        ]
+    },
+    SAT: {
+        courses: "No lectures",
+        tag: "Full Autonomy · Max Output",
+        blocks: [
+            { time: "3:00AM", cat: "spirit", emoji: "🙏", title: "Prophetic Prayer + Manna", dur: "60m" },
+            { time: "4:00AM", cat: "code", emoji: "💻", title: "Deep Work — Project Building", dur: "180m" },
+            { time: "7:00AM", cat: "body", emoji: "🤸", title: "Intensive Calisthenics", dur: "60m" },
+            { time: "8:00AM", cat: "break", emoji: "🍳", title: "Balanced Breakfast + Rest", dur: "60m" },
+            { time: "9:00AM", cat: "study", emoji: "📖", title: "Week syllabus catch-up", dur: "120m" },
+            { time: "11:00AM", cat: "trade", emoji: "📊", title: "Fundamental Analysis Study", dur: "120m" },
+            { time: "1:00PM", cat: "break", emoji: "🍽️", title: "Lunch", dur: "6h" },
+            { time: "5:00PM", cat: "style", emoji: "✂️", title: "Grooming / Maintenance", dur: "60m" },
+            { time: "9:00PM", cat: "sleep", emoji: "💤", title: "Sleep.", dur: "6h" },
+        ]
+    },
+    SUN: {
+        courses: "No lectures",
+        tag: "Spiritual + Planning Day",
+        blocks: [
+            { time: "3:00AM", cat: "spirit", emoji: "🙏", title: "Manna + Prayer Force", dur: "60m" },
+            { time: "8:00AM", cat: "spirit", emoji: "⛪", title: "Church / Service", dur: "180m" },
+            { time: "1:00PM", cat: "break", emoji: "🍽️", title: "Family / Rest / Recharge", dur: "120m" },
+            { time: "3:00PM", cat: "review", emoji: "📝", title: "Weekly OS Audit", dur: "60m" },
+            { time: "4:00PM", cat: "review", emoji: "📅", title: "Mon/Tue Detailed Planning", dur: "60m" },
+            { time: "9:00PM", cat: "sleep", emoji: "💤", title: "Sleep. Ready for battle.", dur: "6h" },
+        ]
+    },
+};

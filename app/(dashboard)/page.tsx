@@ -12,7 +12,7 @@ import {
     Timer
 } from "lucide-react";
 
-import { initialGoals, initialCourses, initialHabits, Goal, Course } from "@/lib/data";
+import { initialGoals, initialCourses, initialHabits, Goal, Course, scheduleData, days, ScheduleBlock } from "@/lib/data";
 
 // Daily rotating quotes
 const QUOTES = [
@@ -28,6 +28,43 @@ function getDailyQuote() {
     const start = new Date(new Date().getFullYear(), 0, 0);
     const day = Math.floor((Date.now() - start.getTime()) / 86400000);
     return QUOTES[day % QUOTES.length];
+}
+
+// Current Schedule Block Calculator
+function getCurrentScheduleBlock(): ScheduleBlock | null {
+    const now = new Date();
+    const adjustedDayIndex = now.getDay() === 0 ? 6 : now.getDay() - 1;
+    const currentDayStr = days[adjustedDayIndex];
+    const daySchedule = scheduleData[currentDayStr];
+    if (!daySchedule) return null;
+
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    for (let i = 0; i < daySchedule.blocks.length; i++) {
+        const b = daySchedule.blocks[i];
+
+        const isPM = b.time.includes("PM");
+        const isAM = b.time.includes("AM");
+        let [hStr, mStr] = b.time.replace("AM", "").replace("PM", "").split(":");
+        let h = parseInt(hStr);
+        let m = parseInt(mStr || "0");
+
+        if (isPM && h !== 12) h += 12;
+        if (isAM && h === 12) h = 0;
+
+        const startMins = h * 60 + m;
+
+        let durMins = 0;
+        if (b.dur.endsWith("m")) durMins = parseInt(b.dur.replace("m", ""));
+        else if (b.dur.endsWith("h")) durMins = parseInt(b.dur.replace("h", "")) * 60;
+
+        const endMins = startMins + durMins;
+
+        if (currentMinutes >= startMins && currentMinutes < endMins) {
+            return b;
+        }
+    }
+    return null;
 }
 
 // 18th Birthday countdown — update BIRTHDAY to your real date
@@ -58,6 +95,14 @@ export default function OverviewPage() {
     const [startDate, setStartDate] = useState<string | null>(null);
     const [countdown, setCountdown] = useState(getBirthdayCountdown());
     const [quote] = useState(getDailyQuote());
+    const [currentBlock, setCurrentBlock] = useState<ScheduleBlock | null>(null);
+
+    useEffect(() => {
+        // Run once on mount to avoid hydration mismatch
+        setCurrentBlock(getCurrentScheduleBlock());
+        const id = setInterval(() => setCurrentBlock(getCurrentScheduleBlock()), 60000);
+        return () => clearInterval(id);
+    }, []);
 
     // Tick the birthday countdown every minute
     useEffect(() => {
@@ -214,6 +259,28 @@ export default function OverviewPage() {
                         ))}
                     </div>
 
+                    {/* What's Now — Mobile Only Execution Banner */}
+                    {currentBlock && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="md:hidden bg-gold/10 border border-gold/30 rounded-xl p-4 relative overflow-hidden"
+                        >
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-gold/20 blur-3xl rounded-full -translate-y-1/2 translate-x-1/2" />
+                            <div className="relative z-10 flex items-start gap-4">
+                                <span className="font-serif text-3xl">{currentBlock.emoji}</span>
+                                <div>
+                                    <h4 className="font-mono text-[9px] uppercase tracking-widest text-gold mb-1 flex items-center gap-2">
+                                        <div className="w-1.5 h-1.5 bg-green rounded-full animate-pulse shadow-[0_0_8px_rgba(74,222,128,1)]" />
+                                        Current Execution block
+                                    </h4>
+                                    <p className="font-bebas text-2xl leading-tight mb-1">{currentBlock.title}</p>
+                                    <p className="font-mono text-[10px] text-text-muted opacity-80">{currentBlock.time} • {currentBlock.dur} duration</p>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+
                     {/* Plan status — no big button, auto-starts on first habit tick */}
                     <div className="flex items-center gap-3">
                         {startDate ? (
@@ -258,8 +325,8 @@ export default function OverviewPage() {
                 ))}
             </section>
 
-            {/* Pillars Grid */}
-            <section>
+            {/* Pillars Grid - Hidden on Mobile to prioritize action */}
+            <section className="hidden md:block">
                 <div className="flex items-center gap-4 mb-8">
                     <h2 className="text-2xl font-bebas tracking-wider">The 6 Pillars</h2>
                     <div className="h-px bg-border flex-1" />
