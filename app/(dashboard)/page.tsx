@@ -45,9 +45,9 @@ function getCurrentScheduleBlock(): ScheduleBlock | null {
 
         const isPM = b.time.includes("PM");
         const isAM = b.time.includes("AM");
-        let [hStr, mStr] = b.time.replace("AM", "").replace("PM", "").split(":");
+        const [hStr, mStr] = b.time.replace("AM", "").replace("PM", "").split(":");
         let h = parseInt(hStr);
-        let m = parseInt(mStr || "0");
+        const m = parseInt(mStr || "0");
 
         if (isPM && h !== 12) h += 12;
         if (isAM && h === 12) h = 0;
