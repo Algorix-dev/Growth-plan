@@ -42,8 +42,8 @@ export const metadata: Metadata = {
     title: "EP · OS",
   },
   icons: {
-    icon: "/api/icon?size=192",
-    apple: "/api/icon?size=192",
+    icon: "/icon-192x192.png",
+    apple: "/icon-192x192.png",
   },
 };
 

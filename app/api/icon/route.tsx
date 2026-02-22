@@ -11,38 +11,43 @@ export async function GET(request: Request) {
         (
             <div
                 style={{
-                    background: '#0E0E0E',
+                    background: 'linear-gradient(135deg, #0a0a0a 0%, #171717 100%)',
                     width: '100%',
                     height: '100%',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
+                    padding: size * 0.1,
                 }}
             >
+                {/* Outer Gold Ring */}
                 <div
                     style={{
-                        fontSize: size * 0.6,
-                        color: '#D4AF37',
-                        fontFamily: 'sans-serif',
-                        fontWeight: '900',
-                        lineHeight: 0.8,
-                        letterSpacing: '-0.05em'
+                        width: '100%',
+                        height: '100%',
+                        borderRadius: '25%', // Squircle-like for icons
+                        border: `${size * 0.02}px solid #D4AF37`,
+                        boxShadow: `inset 0 0 ${size * 0.1}px rgba(212, 175, 55, 0.2), 0 0 ${size * 0.1}px rgba(212, 175, 55, 0.1)`,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
                     }}
                 >
-                    EP
-                </div>
-                <div
-                    style={{
-                        fontSize: size * 0.15,
-                        color: '#D4AF37',
-                        fontFamily: 'monospace',
-                        marginTop: size * 0.05,
-                        letterSpacing: '0.2em',
-                        opacity: 0.8
-                    }}
-                >
-                    OS
+                    <div
+                        style={{
+                            fontSize: size * 0.45,
+                            color: '#e2cd77',
+                            fontFamily: 'serif',
+                            fontWeight: '600',
+                            lineHeight: 0.9,
+                            letterSpacing: '-0.02em',
+                            textShadow: `0 4px ${size * 0.05}px rgba(0,0,0,0.5)`,
+                        }}
+                    >
+                        EP
+                    </div>
                 </div>
             </div>
         ),
