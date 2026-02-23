@@ -4,11 +4,11 @@ import { useState, useEffect, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import {
-    TrendingUp, Target, Clock, RotateCcw,
-    CheckCircle2, Flame, BookOpen, Activity, Zap
+    Target, Clock, RotateCcw,
+    CheckCircle2, Flame, Activity, Zap
 } from "lucide-react";
 import { ForgeLevelBadge } from "@/components/shared/ForgeLevelBadge";
-import { initialGoals, initialCourses, initialHabits, Goal, Course, scheduleData, days, ScheduleBlock } from "@/lib/data";
+import { initialHabits, scheduleData, days, ScheduleBlock } from "@/lib/data";
 import { calculateIdentityState, calculateBurnoutRisk, DailyIdentity } from "@/lib/v2-logic";
 
 // Daily rotating quotes

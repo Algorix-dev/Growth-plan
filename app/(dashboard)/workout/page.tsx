@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ClipboardList, Trophy, Zap, Clock, ChevronRight, Activity, Plus, Trash2 } from "lucide-react";
+import { motion } from "framer-motion";
+import { Zap, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { awardXP } from "@/components/shared/ForgeLevelBadge";
 
@@ -57,7 +57,7 @@ export default function WorkoutPage() {
         return rounds;
     };
 
-    const completeBlock = (blockId: string) => {
+    const completeBlock = () => {
         awardXP(50, "Athletics");
     };
 
@@ -117,7 +117,7 @@ export default function WorkoutPage() {
                                 </div>
                             </div>
                             <button
-                                onClick={() => completeBlock(block.id)}
+                                onClick={() => completeBlock()}
                                 className="px-4 py-2 bg-gold/10 hover:bg-gold/20 border border-gold/30 rounded-lg text-gold font-mono text-[10px] transition-all"
                             >
                                 COMMIT

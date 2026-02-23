@@ -1,12 +1,11 @@
 "use client";
 
-import { Home, ClipboardList, Target, LineChart, BookOpen, Search, Menu, Trophy, Plus, Dumbbell, Zap, History, X, ChevronLeft, PenTool, BarChart3, TrendingUp } from "lucide-react";
+import { Home, ClipboardList, LineChart, Trophy, Plus, Dumbbell, Zap, History } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { awardXP } from "@/components/shared/ForgeLevelBadge";
 
 export function MobileNav() {
     const pathname = usePathname();

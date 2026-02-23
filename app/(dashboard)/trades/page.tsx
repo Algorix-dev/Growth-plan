@@ -4,26 +4,12 @@ import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import {
     Trash2,
-    CheckCircle2,
-    Zap,
-    TrendingUp,
-    ShieldAlert,
-    Image as ImageIcon,
-    Target,
-    Activity
+    ShieldAlert
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import {
-    LineChart,
-    Line,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    ResponsiveContainer
-} from 'recharts';
+// Recharts removed as not used in v2 simplified view
 import { toast } from "sonner";
 import { awardXP } from "@/components/shared/ForgeLevelBadge";
 
@@ -154,7 +140,7 @@ export default function TradesPage() {
                             </div>
                             <div className="space-y-1">
                                 <label className="font-mono text-[9px] uppercase text-text-dim">Outcome</label>
-                                <Select value={newTrade.outcome} onValueChange={(v: any) => setNewTrade({ ...newTrade, outcome: v })}>
+                                <Select value={newTrade.outcome} onValueChange={(v: "WIN" | "LOSS" | "BE") => setNewTrade({ ...newTrade, outcome: v })}>
                                     <SelectTrigger className="bg-bg-base border-border-2"><SelectValue /></SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="WIN">WIN</SelectItem>

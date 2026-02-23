@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { Shield, Sword, Target, Flame, ChevronRight, Star } from "lucide-react";
+import { Sword, Flame } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { awardXP } from "@/components/shared/ForgeLevelBadge";
 
@@ -15,7 +14,7 @@ const RANKS = [
 ];
 
 export default function MartialArtsPage() {
-    const [currentRank, setCurrentRank] = useState("White");
+    const [currentRank] = useState("White");
 
     const logSparring = () => {
         awardXP(100, "Athletics");
@@ -26,7 +25,7 @@ export default function MartialArtsPage() {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
                     <h1 className="font-bebas text-4xl text-gold tracking-tight">Martial Progression</h1>
-                    <p className="font-mono text-[10px] text-text-dim uppercase tracking-widest">The Warrior's Path</p>
+                    <p className="font-mono text-[10px] text-text-dim uppercase tracking-widest">The Warrior&apos;s Path</p>
                 </div>
 
                 <div className="flex gap-2">
