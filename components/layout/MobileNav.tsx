@@ -61,8 +61,9 @@ export function MobileNav() {
                             className="absolute bottom-16 right-0 space-y-4"
                         >
                             {[
+                                { label: "Style Check", icon: Home, href: "/style" }, // Home as placeholder icon if Sparkles not imported
                                 { label: "Log Trade", icon: LineChart, href: "/trades" },
-                                { label: "Start Focus", icon: Zap, href: "/schedule" },
+                                { label: "Drill MA", icon: Zap, href: "/martial-arts" }, // Zap as placeholder
                                 { label: "Add Win", icon: Trophy, href: "/journal" },
                             ].map((act) => (
                                 <Link

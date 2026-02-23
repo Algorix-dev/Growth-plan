@@ -35,6 +35,8 @@ model User {
   featureUnlocks FeatureUnlock[]
   trainingBlocks TrainingBlock[]
   performanceLogs DailyPerformance[]
+  workoutLogs   WorkoutLog[]
+  groomingLogs  GroomingLog[]
 }
 
 model Course {
@@ -298,4 +300,30 @@ model DailyPerformance {
   user User @relation(fields: [userId], references: [id])
 
   @@unique([userId, date], name: "userId_date")
+}
+
+model WorkoutLog {
+  id          String   @id @default(cuid())
+  userId      String
+  date        DateTime @db.Date
+  exerciseId  String
+  completed   Boolean  @default(false)
+  month       Int      // 1, 2, or 3
+  week        Int      // week number within the month
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, date, exerciseId])
+}
+
+model GroomingLog {
+  id        String   @id @default(cuid())
+  userId    String
+  date      DateTime @db.Date
+  item      String   // "Face Wash", "SPF", etc.
+  completed Boolean  @default(false)
+  
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, date, item])
 }

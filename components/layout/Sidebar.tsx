@@ -19,7 +19,11 @@ import {
     ClipboardList,
     Moon,
     Sun,
-    BarChart3
+    BarChart3,
+    Sparkles,
+    Swords,
+    Dumbbell,
+    Map
 } from "lucide-react";
 import { useState } from "react";
 import { useTheme } from "@/components/providers/ThemeProvider";
@@ -31,8 +35,11 @@ const navItems = [
     { label: "Habits", icon: CheckCircle2, href: "/habits", section: "TRACK" },
     { label: "Courses", icon: BookOpen, href: "/courses", section: "TRACK" },
     { label: "Journal", icon: PenTool, href: "/journal", section: "TRACK" },
-    { label: "Weekly Review", icon: ClipboardList, href: "/review", section: "TRACK" },
+    { label: "Warrior Forge", icon: Dumbbell, href: "/workout", section: "EXECUTE" },
+    { label: "Martial Arts", icon: Swords, href: "/martial-arts", section: "EXECUTE" },
+    { label: "Trading Roadmap", icon: Map, href: "/trading-roadmap", section: "EXECUTE" },
     { label: "Trades", icon: TrendingUp, href: "/trades", section: "EXECUTE" },
+    { label: "Style", icon: Sparkles, href: "/style", section: "EXECUTE" },
     { label: "Identity", icon: User, href: "/identity", section: "EXECUTE" },
     { label: "Rules", icon: Zap, href: "/rules", section: "EXECUTE" },
     { label: "Analytics", icon: BarChart3, href: "/analytics", section: "EXECUTE" },
