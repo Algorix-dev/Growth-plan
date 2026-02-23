@@ -7,7 +7,6 @@ import {
     Target, Clock, RotateCcw,
     CheckCircle2, Flame, Activity, Zap
 } from "lucide-react";
-import { ForgeLevelBadge } from "@/components/shared/ForgeLevelBadge";
 import { initialHabits, scheduleData, days, ScheduleBlock } from "@/lib/data";
 import { calculateIdentityState, calculateBurnoutRisk, DailyIdentity } from "@/lib/v2-logic";
 
