@@ -24,6 +24,7 @@ import {
     Dumbbell,
     Map
 } from "lucide-react";
+import { ForgeLevelBadge } from "@/components/shared/ForgeLevelBadge";
 import { useState } from "react";
 import { useTheme } from "@/components/providers/ThemeProvider";
 
@@ -58,15 +59,27 @@ export default function Sidebar() {
                 collapsed ? "w-20" : "w-[240px]"
             )}
         >
-            <div className="p-6 flex items-center justify-between">
-                {!collapsed && (
-                    <div className="font-bebas text-3xl tracking-tighter text-gold flex items-center gap-2">
-                        EP <span className="text-text-dim">·</span> OS
-                    </div>
-                )}
-                {collapsed && (
-                    <div className="font-bebas text-3xl tracking-tighter text-gold w-full text-center">
-                        EP
+            {/* Logo/Badge Section */}
+            <div className={cn(
+                "p-6 flex flex-col gap-4",
+                collapsed && "items-center px-0"
+            )}>
+                {!collapsed ? (
+                    <>
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-gold rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(212,175,55,0.3)]">
+                                <span className="font-bebas text-2xl text-bg-dark">E</span>
+                            </div>
+                            <h1 className="font-bebas text-2xl tracking-wider text-white">Emmanuel <span className="text-gold">OS</span></h1>
+                        </div>
+                        <ForgeLevelBadge />
+                    </>
+                ) : (
+                    <div className="flex flex-col items-center gap-4">
+                        <div className="w-10 h-10 bg-gold rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(212,175,55,0.3)]">
+                            <span className="font-bebas text-2xl text-bg-dark">E</span>
+                        </div>
+                        <ForgeLevelBadge compact />
                     </div>
                 )}
             </div>
