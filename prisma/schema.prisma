@@ -28,6 +28,13 @@ model User {
   courseScores  CourseScore[]
   goalProgress  GoalPhaseProgress[]
   focusSessions FocusSession[]
+  
+  // v2 Intelligence Models
+  pillarXP      PillarXP[]
+  energyLevels  DailyEnergy[]
+  featureUnlocks FeatureUnlock[]
+  trainingBlocks TrainingBlock[]
+  performanceLogs DailyPerformance[]
 }
 
 model Course {
@@ -59,6 +66,7 @@ model CourseTopicProgress {
   topicId   String
   completed Boolean  @default(false)
   completedAt DateTime?
+  mastery   Int      @default(0) // 0-100% mastery score
   
   user  User        @relation(fields: [userId], references: [id])
   topic CourseTopic @relation(fields: [topicId], references: [id])
@@ -165,6 +173,12 @@ model Trade {
   lesson     String?
   createdAt  DateTime @default(now())
   
+  // v2 Extensions
+  strategy      String?   // ICT | Breakout | BOS
+  riskPercent   Float?    @default(1.0)
+  ruleViolation Boolean?  @default(false)
+  screenshotUrl String?
+  
   user User @relation(fields: [userId], references: [id])
 }
 
@@ -210,6 +224,74 @@ model FocusSession {
   category  String   // "code", "study", "trade", "read", etc.
   task      String?  // The specific block title
   date      DateTime @default(now())
+  
+  user User @relation(fields: [userId], references: [id])
+}
+
+// --- Emmanuel OS v2 Master Directive Models ---
+
+model TrainingBlock {
+  id        String   @id @default(cuid())
+  userId    String
+  date      DateTime @default(now()) @db.Date
+  type      String   // strength | core | skill | mobility | circuit
+  title     String
+  rounds    Int?
+  fatigue   Int?     // 1-5 rating post workout
+  
+  exercises Exercise[]
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Exercise {
+  id            String   @id @default(cuid())
+  blockId       String
+  name          String
+  sets          Int?
+  reps          String?
+  duration      String?
+  difficulty    Int?     // 1-5 difficulty
+  progressionFrom String?
+  estMinutes    Int?
+  
+  block TrainingBlock @relation(fields: [blockId], references: [id], onDelete: Cascade)
+}
+
+model DailyEnergy {
+  id      String   @id @default(cuid())
+  userId  String
+  date    DateTime @unique @db.Date
+  level   String   // low | medium | high
+  
+  user User @relation(fields: [userId], references: [id])
+}
+
+model PillarXP {
+  id       String   @id @default(cuid())
+  userId   String
+  pillar   String   // Technical | Math | Finance | Athletics | Social | Spirit
+  xp       Int
+  date     DateTime @default(now()) @db.Date
+  
+  user User @relation(fields: [userId], references: [id])
+}
+
+model FeatureUnlock {
+  id       String   @id @default(cuid())
+  userId   String
+  feature  String
+  unlocked Boolean  @default(false)
+  
+  user User @relation(fields: [userId], references: [id])
+  @@unique([userId, feature])
+}
+
+model DailyPerformance {
+  id               String   @id @default(cuid())
+  userId           String
+  date             DateTime @unique @db.Date
+  upsScore         Int      // Unified Performance Score (0-100)
+  burnoutIndicator String   // Green | Yellow | Red
   
   user User @relation(fields: [userId], references: [id])
 }

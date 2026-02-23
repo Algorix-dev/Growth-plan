@@ -23,41 +23,43 @@ export function SyncBridge() {
             const dailyJournal = JSON.parse(localStorage.getItem("emmanuel_journal_daily") || "[]");
             const trades = JSON.parse(localStorage.getItem("emmanuel_trades") || "[]");
             const xp = parseInt(localStorage.getItem("emmanuel_forging_xp") || "0");
+            const pillarXP = JSON.parse(localStorage.getItem("emmanuel_sync_pillar_xp") || "[]");
+            const energy = localStorage.getItem("emmanuel_energy_level") || "medium";
 
             // 2. Push to Server
-            const res = await fetch("/api/sync", {
+            const response = await fetch("/api/sync", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    userId: user.id,
-                    habits,
-                    focus,
-                    dailyJournal,
-                    trades,
-                    xp
-                }),
+                body: JSON.stringify({ userId: user.id, habits, focus, dailyJournal, trades, xp, pillarXP, energy }),
             });
 
-            if (!res.ok) throw new Error("Sync failed");
-
-            const data = await res.json();
-
             // 3. Pull & Resolve (Update Local with Server State)
-            // For now, we assume server is the source of truth if sync succeeds
-            if (data.xp !== undefined) localStorage.setItem("emmanuel_forging_xp", data.xp.toString());
+            if (response.ok) {
+                const data = await response.json();
+                const state = data.state;
+                if (!state) return;
 
-            // If local data is empty but server has data, populate it
-            if (Object.keys(habits).length === 0 && data.habits) {
-                localStorage.setItem("emmanuel_habits", JSON.stringify(data.habits));
-            }
-            if (focus.length === 0 && data.focus) {
-                localStorage.setItem("emmanuel_focus_sessions", JSON.stringify(data.focus));
-            }
-            if (trades.length === 0 && data.trades) {
-                localStorage.setItem("emmanuel_trades", JSON.stringify(data.trades));
-            }
-            if (dailyJournal.length === 0 && data.dailyJournal) {
-                localStorage.setItem("emmanuel_journal_daily", JSON.stringify(data.dailyJournal));
+                if (state.xp !== undefined) localStorage.setItem("emmanuel_forging_xp", state.xp.toString());
+                if (state.energy) localStorage.setItem("emmanuel_energy_level", state.energy);
+
+                // Clear the sync queue for pillars since they are now on server
+                localStorage.setItem("emmanuel_sync_pillar_xp", "[]");
+
+                // If local data is empty but server has data, populate it
+                if (Object.keys(habits).length === 0 && state.habits) {
+                    localStorage.setItem("emmanuel_habits", JSON.stringify(state.habits));
+                }
+                if (focus.length === 0 && state.focus) {
+                    localStorage.setItem("emmanuel_focus_sessions", JSON.stringify(state.focus));
+                }
+                if (trades.length === 0 && state.trades) {
+                    localStorage.setItem("emmanuel_trades", JSON.stringify(state.trades));
+                }
+                if (dailyJournal.length === 0 && state.journal) {
+                    localStorage.setItem("emmanuel_journal_daily", JSON.stringify(state.journal));
+                }
+            } else {
+                throw new Error("Sync failed");
             }
 
             setLastSynced(new Date());

@@ -11,6 +11,12 @@ export const XP_TABLE = {
     weekly_review: 80,         // Weekly review completed
 };
 
+/**
+ * Emmanuel OS v2: Rewards are now difficulty-weighted.
+ * Use getWeightedFocusXP(duration) for sessions.
+ */
+
+
 export const LEVEL_TITLES: Record<number, string> = {
     1: "Raw",
     3: "Recruit",

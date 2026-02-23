@@ -5,10 +5,11 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import {
     TrendingUp, Target, Clock, RotateCcw,
-    CheckCircle2, Flame, BookOpen
+    CheckCircle2, Flame, BookOpen, Activity, Zap
 } from "lucide-react";
 import { ForgeLevelBadge } from "@/components/shared/ForgeLevelBadge";
 import { initialGoals, initialCourses, initialHabits, Goal, Course, scheduleData, days, ScheduleBlock } from "@/lib/data";
+import { calculateIdentityState, calculateBurnoutRisk, DailyIdentity } from "@/lib/v2-logic";
 
 // Daily rotating quotes
 const QUOTES = [
@@ -93,6 +94,9 @@ export default function OverviewPage() {
     const [countdown, setCountdown] = useState(getBirthdayCountdown());
     const [quote] = useState(getDailyQuote());
     const [currentBlock, setCurrentBlock] = useState<ScheduleBlock | null>(null);
+    const [identity, setIdentity] = useState<DailyIdentity>("Builder");
+    const [burnout, setBurnout] = useState({ score: 0, indicator: "Green" });
+    const [energy, setEnergy] = useState("medium");
 
     useEffect(() => {
         // Run once on mount to avoid hydration mismatch
@@ -144,48 +148,31 @@ export default function OverviewPage() {
             setStats(prev => ({ ...prev, trades: trades.length.toString() }));
         }
 
-        // --- Goals & Pillars ---
-        const savedGoals = localStorage.getItem("emmanuel_goals");
-        const activeGoals: Goal[] = savedGoals ? JSON.parse(savedGoals) : initialGoals;
+        // --- v2: Pillar XP & Identity ---
+        const pillarXpMap: Record<string, number> = {
+            Technical: parseInt(localStorage.getItem("emmanuel_pillar_Technical") || "0"),
+            Math: parseInt(localStorage.getItem("emmanuel_pillar_Math") || "0"),
+            Finance: parseInt(localStorage.getItem("emmanuel_pillar_Finance") || "0"),
+            Athletics: parseInt(localStorage.getItem("emmanuel_pillar_Athletics") || "0"),
+            Social: parseInt(localStorage.getItem("emmanuel_pillar_Social") || "0"),
+            Spirit: parseInt(localStorage.getItem("emmanuel_pillar_Spirit") || "0"),
+        };
+        const idState = calculateIdentityState(pillarXpMap);
+        setIdentity(idState);
 
-        let total = 0;
-        let done = 0;
-        const goalPcts: Record<string, number> = {};
-
-        activeGoals.forEach((g: Goal) => {
-            const gTotal = g.phases.length;
-            const gDone = g.phases.filter((p) => p.done).length;
-            const gPct = gTotal > 0 ? Math.round((gDone / gTotal) * 100) : 0;
-
-            total += gTotal;
-            done += gDone;
-            goalPcts[g.id] = gPct;
-        });
-
-        const pProgs = [
-            goalPcts["g2"] || 0, // Technical Power
-            goalPcts["g1"] || 0, // Mathematical Maturity
-            goalPcts["g3"] || 0, // Financial Intelligence
-            goalPcts["g4"] || 0, // Athletic Discipline
-            goalPcts["g5"] || 0, // Social Composure
-            goalPcts["g6"] || 0, // Spiritual Alignment
-        ];
-
+        const pProgs = Object.values(pillarXpMap).map(xp => Math.min(100, (xp / 1000) * 100)); // Normalized to 1000XP for display
         setPillarProgress(pProgs);
-        const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-        setStats(prev => ({ ...prev, goals: `${pct}%` }));
 
-        // --- Courses ---
-        const savedCourses = localStorage.getItem("emmanuel_courses");
-        const activeCourses: Course[] = savedCourses ? JSON.parse(savedCourses) : initialCourses;
+        const currentEnergy = localStorage.getItem("emmanuel_energy_level") || "medium";
+        setEnergy(currentEnergy);
 
-        let cTotal = 0;
-        let cDone = 0;
-        activeCourses.forEach((c: Course) => {
-            cTotal += c.topics.length;
-            cDone += c.topics.filter((t) => t.completed).length;
+        const risk = calculateBurnoutRisk({
+            missedAnchors: 0,
+            lowEnergyDays: currentEnergy === 'low' ? 1 : 0,
+            avgFatigue: 2,
+            consecutiveFailures: 0
         });
-        setStats(prev => ({ ...prev, topics: `${cDone} / ${cTotal}` }));
+        setBurnout(risk);
     }, []);
 
     const resetPlan = useCallback(() => {
@@ -214,9 +201,15 @@ export default function OverviewPage() {
                                     <h2 className="text-4xl md:text-6xl font-bebas tracking-wider text-white">
                                         Emmanuel <span className="text-gold">OS</span>
                                     </h2>
-                                    <p className="font-mono text-[10px] md:text-xs uppercase tracking-[0.3em] text-gold/60">
-                                        System v4.0 • Deep Integration
-                                    </p>
+                                    <div className="flex items-center gap-3">
+                                        <p className="font-mono text-[10px] md:text-xs uppercase tracking-[0.3em] text-gold/60">
+                                            System v4.0 • Deep Integration
+                                        </p>
+                                        <span className="text-gold/40">|</span>
+                                        <span className="font-bebas text-lg text-gold/90 tracking-widest bg-gold/5 px-2 py-0.5 rounded border border-gold/10">
+                                            {identity} ACTIVE
+                                        </span>
+                                    </div>
                                 </div>
                                 <div className="h-px bg-gradient-to-r from-gold/50 to-transparent flex-1 hidden md:block" />
                             </div>
@@ -343,9 +336,9 @@ export default function OverviewPage() {
             <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 {[
                     { label: "Habits Today", value: stats.habits, icon: CheckCircle2, color: "text-gold" },
-                    { label: "Weekly Streak", value: stats.streak, icon: Flame, color: "text-red" },
-                    { label: "Topics Self-Studied", value: stats.topics, icon: BookOpen, color: "text-blue" },
-                    { label: "Trades Logged", value: stats.trades, icon: TrendingUp, color: "text-purple" },
+                    { label: "Burnout Risk", value: burnout.indicator, icon: Activity, color: burnout.indicator === 'Red' ? "text-red" : "text-green" },
+                    { label: "Identity State", value: identity, icon: Zap, color: "text-gold" },
+                    { label: "Energy Level", value: energy.toUpperCase(), icon: Flame, color: "text-red" },
                     { label: "Goals Progress", value: stats.goals, icon: Target, color: "text-green" },
                 ].map((stat, i) => (
                     <motion.div
@@ -367,9 +360,9 @@ export default function OverviewPage() {
             {/* Pillars Grid - Hidden on Mobile to prioritize action */}
             <section className="hidden md:block">
                 <div className="flex items-center gap-4 mb-8">
-                    <h2 className="text-2xl font-bebas tracking-wider">The 6 Pillars</h2>
+                    <h2 className="text-2xl font-bebas tracking-wider text-white">The 6 Pillars</h2>
                     <div className="h-px bg-border flex-1" />
-                    <span className="font-mono text-[10px] uppercase text-text-dim tracking-widest">Growth Arc</span>
+                    <span className="font-mono text-[10px] uppercase text-gold tracking-widest">XP Investment Chart</span>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

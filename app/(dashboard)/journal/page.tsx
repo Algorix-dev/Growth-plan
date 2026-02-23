@@ -20,6 +20,7 @@ interface DailyEntry {
     gaps: string;
     fix: string;
     rating: number;
+    auraRating: number;
 }
 
 interface WeeklyEntry {
@@ -41,6 +42,7 @@ interface MonthlyEntry {
 export default function JournalPage() {
     // Daily State
     const [dailyRating, setDailyRating] = useState<number | null>(null);
+    const [auraRating, setAuraRating] = useState<number>(3);
     const [dailyEntries, setDailyEntries] = useState<DailyEntry[]>([]);
     const [wins, setWins] = useState("");
     const [gaps, setGaps] = useState("");
@@ -93,13 +95,15 @@ export default function JournalPage() {
         const newEntry: DailyEntry = {
             id: Date.now(),
             date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
-            wins: wins || "No notes", gaps, fix, rating: dailyRating || 3
+            wins: wins || "No notes", gaps, fix, rating: dailyRating || 3,
+            auraRating: auraRating
         };
         setDailyEntries([newEntry, ...dailyEntries]);
-        setWins(""); setGaps(""); setFix(""); setDailyRating(null);
+        setWins(""); setGaps(""); setFix(""); setDailyRating(null); setAuraRating(3);
 
-        // 🏆 Award XP for Journal Entry
-        awardXP(15);
+        // 🏆 Award XP for Journal Entry - Spirit Pillar
+        awardXP(15, "Spirit");
+        if (auraRating > 3) awardXP(10, "Social");
 
         // ⚡ Trigger immediate sync
         setTimeout(() => {
@@ -199,22 +203,42 @@ export default function JournalPage() {
                                         />
                                     </div>
 
-                                    <div className="space-y-4 pt-4">
-                                        <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-dim">Discipline Rating</label>
-                                        <div className="flex gap-2">
-                                            {ratings.map((r) => (
-                                                <button
-                                                    key={r.val}
-                                                    onClick={() => setDailyRating(r.val)}
-                                                    className={cn(
-                                                        "flex-1 py-3 rounded-lg border font-bebas text-lg transition-all",
-                                                        dailyRating === r.val ? "bg-gold border-gold text-black" : "bg-bg-base border-border-2 text-text-muted hover:border-gold/50"
-                                                    )}
-                                                    title={r.label}
-                                                >
-                                                    {r.val}
-                                                </button>
-                                            ))}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                                        <div className="space-y-4">
+                                            <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-dim">Discipline Rating</label>
+                                            <div className="flex gap-2">
+                                                {ratings.map((r) => (
+                                                    <button
+                                                        key={r.val}
+                                                        onClick={() => setDailyRating(r.val)}
+                                                        className={cn(
+                                                            "flex-1 py-3 rounded-lg border font-bebas text-lg transition-all",
+                                                            dailyRating === r.val ? "bg-gold border-gold text-black" : "bg-bg-base border-border-2 text-text-muted hover:border-gold/50"
+                                                        )}
+                                                        title={r.label}
+                                                    >
+                                                        {r.val}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-dim">Presence/Aura Rating</label>
+                                            <div className="flex gap-2">
+                                                {[1, 2, 3, 4, 5].map((v) => (
+                                                    <button
+                                                        key={v}
+                                                        onClick={() => setAuraRating(v)}
+                                                        className={cn(
+                                                            "flex-1 py-3 rounded-lg border font-bebas text-lg transition-all",
+                                                            auraRating === v ? "bg-blue border-blue text-black" : "bg-bg-base border-border-2 text-text-muted hover:border-blue/50"
+                                                        )}
+                                                    >
+                                                        {v}
+                                                    </button>
+                                                ))}
+                                            </div>
                                         </div>
                                     </div>
 

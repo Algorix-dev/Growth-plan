@@ -21,12 +21,24 @@ export function ForgeLevelBadge({ compact = false }: ForgeLevelProps) {
 
         // listen for XP updates from any page action
         const onXpUpdate = (e: Event) => {
-            const detail = (e as CustomEvent<{ amount: number }>).detail;
+            const detail = (e as CustomEvent<{ amount: number; pillar?: string }>).detail;
             setTotalXp(prev => {
                 const next = prev + detail.amount;
                 localStorage.setItem(STORAGE_KEY, String(next));
                 return next;
             });
+
+            if (detail.pillar) {
+                const pillarKey = `emmanuel_pillar_${detail.pillar}`;
+                const current = parseInt(localStorage.getItem(pillarKey) || "0");
+                localStorage.setItem(pillarKey, String(current + detail.amount));
+
+                // Track for sync
+                const syncQueue = JSON.parse(localStorage.getItem("emmanuel_sync_pillar_xp") || "[]");
+                syncQueue.push({ pillar: detail.pillar, xp: detail.amount, date: new Date().toISOString() });
+                localStorage.setItem("emmanuel_sync_pillar_xp", JSON.stringify(syncQueue));
+            }
+
             setShowXpGain(detail.amount);
             setTimeout(() => setShowXpGain(null), 2500);
         };
@@ -101,6 +113,6 @@ export function ForgeLevelBadge({ compact = false }: ForgeLevelProps) {
 }
 
 // Utility to trigger XP award from any component
-export function awardXP(amount: number) {
-    window.dispatchEvent(new CustomEvent("xp:award", { detail: { amount } }));
+export function awardXP(amount: number, pillar?: "Technical" | "Math" | "Finance" | "Athletics" | "Social" | "Spirit") {
+    window.dispatchEvent(new CustomEvent("xp:award", { detail: { amount, pillar } }));
 }
