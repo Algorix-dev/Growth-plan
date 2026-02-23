@@ -1,14 +1,27 @@
 import { PrismaClient } from '@prisma/client'
+import { createHash } from 'crypto'
 
 const prisma = new PrismaClient()
 
+function hashPassword(password: string) {
+    return createHash('sha256').update(password).digest('hex')
+}
+
 async function main() {
     // 1. Create User
+    const email = 'emmytech2008@gmail.com'
+    const password = 'Emmytech2008@#$'
+    const hashedPassword = hashPassword(password)
+
     const user = await prisma.user.upsert({
-        where: { email: 'emmanuel@os.com' },
-        update: {},
+        where: { email },
+        update: {
+            password: hashedPassword,
+            name: 'Emmanuel Peter'
+        },
         create: {
-            email: 'emmanuel@os.com',
+            email,
+            password: hashedPassword,
             name: 'Emmanuel Peter',
         },
     })

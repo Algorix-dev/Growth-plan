@@ -27,13 +27,13 @@ export default function LoginPage() {
         e.preventDefault();
         setLoading(true);
 
-        const success = await login(email);
+        const result = await login(email, password);
 
-        if (success) {
+        if (result.success) {
             toast.success("Identity Verified. Synchronization active.");
             router.push("/");
         } else {
-            toast.error("Access denied. Authorized users only.");
+            toast.error(result.error || "Access denied. Authorized users only.");
         }
         setLoading(false);
     };

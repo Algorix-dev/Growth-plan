@@ -13,7 +13,7 @@ interface User {
 interface UserContextType {
     user: User | null;
     loading: boolean;
-    login: (email: string) => Promise<boolean>;
+    login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
     logout: () => void;
     refreshUser: () => Promise<void>;
 }
@@ -48,24 +48,25 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
-    const login = async (email: string) => {
+    const login = async (email: string, password: string) => {
         try {
             const res = await fetch("/api/auth/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email }),
+                body: JSON.stringify({ email, password }),
             });
 
+            const data = await res.json();
+
             if (res.ok) {
-                const data = await res.json();
                 localStorage.setItem("emmanuel_user_id", data.user.id);
                 setUser(data.user);
-                return true;
+                return { success: true };
             }
-            return false;
+            return { success: false, error: data.error };
         } catch (e) {
             console.error("Login error:", e);
-            return false;
+            return { success: false, error: "System failure. Check connection." };
         }
     };
 
