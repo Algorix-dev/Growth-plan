@@ -95,20 +95,17 @@ export async function POST(req: NextRequest) {
             today.setHours(0, 0, 0, 0);
 
             // Re-fetch to see if we update or create
-            // @ts-ignore
-            const existingEnergy = await (prisma as any).dailyEnergy.findUnique({
+            const existingEnergy = await prisma.dailyEnergy.findUnique({
                 where: { userId_date: { userId, date: today } }
             });
 
             if (existingEnergy) {
-                // @ts-ignore
-                await (prisma as any).dailyEnergy.update({
+                await prisma.dailyEnergy.update({
                     where: { id: existingEnergy.id },
                     data: { level: energy }
                 });
             } else {
-                // @ts-ignore
-                await (prisma as any).dailyEnergy.create({
+                await prisma.dailyEnergy.create({
                     data: { userId, date: today, level: energy }
                 });
             }
@@ -116,8 +113,7 @@ export async function POST(req: NextRequest) {
 
         if (pillarXP && Array.isArray(pillarXP)) {
             for (const pxp of pillarXP) {
-                // @ts-ignore
-                await (prisma as any).pillarXP.create({
+                await prisma.pillarXP.create({
                     data: {
                         userId,
                         pillar: pxp.pillar,
@@ -133,13 +129,11 @@ export async function POST(req: NextRequest) {
         const focusRes = await prisma.focusSession.findMany({ where: { userId }, orderBy: { date: 'desc' } });
         const tradesRes = await prisma.trade.findMany({ where: { userId }, orderBy: { createdAt: 'desc' } });
         const journalRes = await prisma.journalEntry.findMany({ where: { userId }, orderBy: { date: 'desc' } });
-        // @ts-ignore
-        const pillarsRes = await (prisma as any).pillarXP.findMany({ where: { userId }, orderBy: { date: 'desc' }, take: 50 });
+        const pillarsRes = await prisma.pillarXP.findMany({ where: { userId }, orderBy: { date: 'desc' }, take: 50 });
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        // @ts-ignore
-        const energyRes = await (prisma as any).dailyEnergy.findUnique({
+        const energyRes = await prisma.dailyEnergy.findUnique({
             where: { userId_date: { userId, date: today } }
         });
 
@@ -163,18 +157,18 @@ export async function POST(req: NextRequest) {
                     task: s.task,
                     date: s.date
                 })),
-                trades: tradesRes.map((t: any) => ({
-                    id: t.id,
-                    pair: t.pair,
-                    dir: t.direction,
-                    entry: t.entryPrice,
-                    sl: t.stopLoss,
-                    tp: t.takeProfit,
-                    outcome: t.outcome,
-                    rr: t.rr,
-                    emotion: t.emotion,
-                    strategy: t.strategy,
-                    risk: t.riskPercent
+                trades: (tradesRes as Array<Record<string, unknown>>).map((t) => ({
+                    id: String(t.id),
+                    pair: String(t.pair),
+                    dir: String(t.direction),
+                    entry: String(t.entryPrice || ""),
+                    sl: String(t.stopLoss || ""),
+                    tp: String(t.takeProfit || ""),
+                    outcome: String(t.outcome),
+                    rr: String(t.rr || ""),
+                    emotion: String(t.emotion || ""),
+                    strategy: String(t.strategy || ""),
+                    risk: Number(t.riskPercent || 0)
                 })),
                 journal: journalRes.map(j => ({
                     id: j.date.toISOString(),
