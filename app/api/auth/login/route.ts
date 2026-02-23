@@ -9,28 +9,40 @@ function hashPassword(password: string) {
 }
 
 export async function POST(req: NextRequest) {
-    const { email, password } = await req.json();
+    try {
+        const body = await req.json();
+        const { email, password } = body;
 
-    if (!email || !password) {
-        return NextResponse.json({ error: "Email and password required" }, { status: 400 });
+        if (!email || !password) {
+            return NextResponse.json({ error: "Email and password required" }, { status: 400 });
+        }
+
+        if (email.toLowerCase() !== AUTHORIZED_EMAIL.toLowerCase()) {
+            return NextResponse.json({ error: "Access denied. Unauthorized identity." }, { status: 403 });
+        }
+
+        const user = await prisma.user.findUnique({
+            where: { email: AUTHORIZED_EMAIL }
+        });
+
+        if (!user) {
+            return NextResponse.json({ error: "Identity not found. Ensure seeding is complete." }, { status: 404 });
+        }
+
+        const hashedInput = hashPassword(password);
+        // Cast to handle potential schema sync lag in dev environments
+        const dbPassword = (user as unknown as { password?: string }).password;
+
+        if (dbPassword !== hashedInput) {
+            return NextResponse.json({ error: "Verification failed. Incorrect key." }, { status: 401 });
+        }
+
+        return NextResponse.json({ success: true, user });
+    } catch (error) {
+        console.error("Login API Error:", error);
+        return NextResponse.json({
+            error: "Internal Authentication Error",
+            details: error instanceof Error ? error.message : "Unknown error"
+        }, { status: 500 });
     }
-
-    if (email.toLowerCase() !== AUTHORIZED_EMAIL.toLowerCase()) {
-        return NextResponse.json({ error: "Access denied. Unauthorized identity." }, { status: 403 });
-    }
-
-    const user = await prisma.user.findUnique({
-        where: { email: AUTHORIZED_EMAIL }
-    });
-
-    if (!user) {
-        return NextResponse.json({ error: "Identity not found in database." }, { status: 404 });
-    }
-
-    const hashedInput = hashPassword(password);
-    if (user.password !== hashedInput) {
-        return NextResponse.json({ error: "Verification failed. Incorrect key." }, { status: 401 });
-    }
-
-    return NextResponse.json({ success: true, user });
 }

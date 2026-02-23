@@ -56,17 +56,25 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
                 body: JSON.stringify({ email, password }),
             });
 
-            const data = await res.json();
+            let data;
+            const contentType = res.headers.get("content-type");
+            if (contentType && contentType.includes("application/json")) {
+                data = await res.json();
+            } else {
+                const text = await res.text();
+                console.error("Non-JSON response:", text);
+                return { success: false, error: `Server Error (${res.status})` };
+            }
 
             if (res.ok) {
                 localStorage.setItem("emmanuel_user_id", data.user.id);
                 setUser(data.user);
                 return { success: true };
             }
-            return { success: false, error: data.error };
+            return { success: false, error: data.error || "Verification failed." };
         } catch (e) {
-            console.error("Login error:", e);
-            return { success: false, error: "System failure. Check connection." };
+            console.error("Login client error:", e);
+            return { success: false, error: "Network or System failure. Check console." };
         }
     };
 
