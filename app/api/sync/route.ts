@@ -91,12 +91,27 @@ export async function POST(req: NextRequest) {
 
         // --- v2 Additions: Energy and Pillar XP ---
         if (energy) {
-            // @ts-ignore - Prisma dynamic property might be stale in IDE but correct in schema
-            await (prisma as any).dailyEnergy.upsert({
-                where: { userId_date: { userId, date: new Date() } },
-                update: { level: energy },
-                create: { userId, date: new Date(), level: energy }
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // Re-fetch to see if we update or create
+            // @ts-ignore
+            const existingEnergy = await (prisma as any).dailyEnergy.findUnique({
+                where: { userId_date: { userId, date: today } }
             });
+
+            if (existingEnergy) {
+                // @ts-ignore
+                await (prisma as any).dailyEnergy.update({
+                    where: { id: existingEnergy.id },
+                    data: { level: energy }
+                });
+            } else {
+                // @ts-ignore
+                await (prisma as any).dailyEnergy.create({
+                    data: { userId, date: today, level: energy }
+                });
+            }
         }
 
         if (pillarXP && Array.isArray(pillarXP)) {
@@ -120,8 +135,13 @@ export async function POST(req: NextRequest) {
         const journalRes = await prisma.journalEntry.findMany({ where: { userId }, orderBy: { date: 'desc' } });
         // @ts-ignore
         const pillarsRes = await (prisma as any).pillarXP.findMany({ where: { userId }, orderBy: { date: 'desc' }, take: 50 });
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
         // @ts-ignore
-        const energyRes = await (prisma as any).dailyEnergy.findUnique({ where: { userId_date: { userId, date: new Date() } } });
+        const energyRes = await (prisma as any).dailyEnergy.findUnique({
+            where: { userId_date: { userId, date: today } }
+        });
 
         // Transform back to local format (Placeholder if needed later)
         // const habitsMap: Record<string, any> = {};

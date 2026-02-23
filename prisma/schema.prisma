@@ -265,7 +265,7 @@ model DailyEnergy {
   
   user User @relation(fields: [userId], references: [id])
 
-  @@unique([userId, date])
+  @@unique([userId, date], name: "userId_date")
 }
 
 model PillarXP {
@@ -297,5 +297,5 @@ model DailyPerformance {
   
   user User @relation(fields: [userId], references: [id])
 
-  @@unique([userId, date])
+  @@unique([userId, date], name: "userId_date")
 }
