@@ -27,6 +27,8 @@ import {
 import { ForgeLevelBadge } from "@/components/shared/ForgeLevelBadge";
 import { useState } from "react";
 import { useTheme } from "@/components/providers/ThemeProvider";
+import { useUser } from "@/components/providers/UserContext";
+import { useRouter } from "next/navigation";
 
 const navItems = [
     { label: "Overview", icon: LayoutDashboard, href: "/", section: "CORE" },
@@ -47,8 +49,15 @@ const navItems = [
 
 export default function Sidebar() {
     const pathname = usePathname();
+    const router = useRouter();
     const [collapsed, setCollapsed] = useState(false);
     const { theme, toggleTheme } = useTheme();
+    const { logout } = useUser();
+
+    const handleLogout = () => {
+        logout();
+        router.push("/login");
+    };
 
     const sections = ["CORE", "TRACK", "EXECUTE"];
 
@@ -174,7 +183,10 @@ export default function Sidebar() {
                     )}
                 </div>
 
-                <button className="w-full flex items-center gap-3 px-3 py-2 text-red/60 hover:text-red hover:bg-red/5 rounded-lg transition-all">
+                <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-3 px-3 py-2 text-red/60 hover:text-red hover:bg-red/5 rounded-lg transition-all"
+                >
                     <LogOut className="w-5 h-5" />
                     {!collapsed && <span className="font-mono text-xs tracking-wide uppercase">Logout</span>}
                 </button>

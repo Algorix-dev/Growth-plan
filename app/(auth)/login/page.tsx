@@ -8,13 +8,20 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/components/providers/UserContext";
+import { useEffect } from "react";
 
 export default function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const router = useRouter();
-    const { login } = useUser();
+    const { login, user, loading: userLoading } = useUser();
+
+    useEffect(() => {
+        if (!userLoading && user) {
+            router.push("/");
+        }
+    }, [user, userLoading, router]);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();

@@ -5,12 +5,23 @@ import Sidebar from "@/components/layout/Sidebar";
 import MobileNav from "@/components/layout/MobileNav";
 import DailyReflectionModal from "@/components/shared/DailyReflectionModal";
 import { SyncBridge } from "@/components/shared/SyncBridge";
+import { useUser } from "@/components/providers/UserContext";
+import { useRouter } from "next/navigation";
 
 export default function DashboardLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
+    const { user, loading } = useUser();
+    const router = useRouter();
+
+    useEffect(() => {
+        if (!loading && !user) {
+            router.push("/login");
+        }
+    }, [user, loading, router]);
+
     useEffect(() => {
         // Only run in browser
         if (typeof window === "undefined" || !("Notification" in window)) return;
