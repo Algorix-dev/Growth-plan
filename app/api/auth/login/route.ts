@@ -39,10 +39,11 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({ success: true, user });
     } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
         console.error("Login API Error:", error);
         return NextResponse.json({
-            error: "Internal Authentication Error",
-            details: error instanceof Error ? error.message : "Unknown error"
+            error: `Internal Authentication Error: ${errorMessage}`,
+            details: errorMessage
         }, { status: 500 });
     }
 }
