@@ -7,27 +7,28 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useUser } from "@/components/providers/UserContext";
 
 export default function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const router = useRouter();
+    const { login } = useUser();
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
 
-        // Simulate login for now - real Supabase Auth would go here
-        setTimeout(() => {
-            if (email === "emmanuel@os.com") {
-                toast.success("Welcome back, Emmanuel.");
-                router.push("/");
-            } else {
-                toast.error("Access denied. Authorized users only.");
-            }
-            setLoading(false);
-        }, 1200);
+        const success = await login(email);
+
+        if (success) {
+            toast.success("Identity Verified. Synchronization active.");
+            router.push("/");
+        } else {
+            toast.error("Access denied. Authorized users only.");
+        }
+        setLoading(false);
     };
 
     return (

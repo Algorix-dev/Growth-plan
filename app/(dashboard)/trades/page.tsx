@@ -20,6 +20,7 @@ import {
     ResponsiveContainer
 } from 'recharts';
 import { toast } from "sonner";
+import { awardXP } from "@/components/shared/ForgeLevelBadge";
 
 interface Trade {
     id: string;
@@ -90,7 +91,16 @@ export default function TradesPage() {
 
         setTrades([trade, ...trades]);
         setNewTrade({ pair: "", dir: "LONG", entry: "", sl: "", tp: "", outcome: "WIN", emotion: "" });
+
+        // 🏆 Award XP for Trade logging
+        awardXP(trade.outcome === "WIN" ? 50 : 20);
+
         toast.success("Trade committed to Mission Log.");
+
+        // ⚡ Trigger immediate sync
+        setTimeout(() => {
+            window.dispatchEvent(new CustomEvent("sync:now"));
+        }, 100);
     };
 
     const deleteTrade = (id: string) => {

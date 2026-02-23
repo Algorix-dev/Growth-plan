@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import StreakHeatmap from "@/components/habits/StreakHeatmap";
+import { awardXP } from "@/components/shared/ForgeLevelBadge";
 
 import { initialHabits } from "@/lib/data";
 
@@ -60,13 +61,32 @@ export default function HabitsPage() {
     const toggleHabit = (habitLabel: string, day: string) => {
         const key = `${habitLabel}-${day}`;
         setCheckedState(prev => {
-            const next = { ...prev, [key]: !prev[key] };
+            const isTicking = !prev[key];
+            const next = { ...prev, [key]: isTicking };
+
+            // 🏆 Award XP for individual habit check
+            if (isTicking) {
+                awardXP(10);
+
+                // Check if all habits for this specific day are now complete (Bonus XP)
+                const allForDay = initialHabits.every(h => next[`${h.label}-${day}`]);
+                if (allForDay) {
+                    awardXP(50); // Daily Completion Bonus
+                }
+            }
+
             // Auto-start: record plan start date on first ever habit tick
             if (next[key] && !localStorage.getItem("emmanuel_start_date")) {
                 const now = new Date().toISOString();
                 localStorage.setItem("emmanuel_start_date", now);
                 setDateRange(`${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – …`);
             }
+
+            // ⚡ Trigger immediate sync
+            setTimeout(() => {
+                window.dispatchEvent(new CustomEvent("sync:now"));
+            }, 100);
+
             return next;
         });
     };

@@ -17,10 +17,13 @@ import {
     Target,
     User,
     Zap,
-    ChevronLeft
+    ChevronLeft,
+    BarChart3
 } from "lucide-react";
+import { awardXP } from "@/components/shared/ForgeLevelBadge";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { ForgeLevelBadge } from "@/components/shared/ForgeLevelBadge";
 
 const menuLinks = [
     { label: "Goals", icon: Target, href: "/goals", section: "CORE" },
@@ -30,6 +33,7 @@ const menuLinks = [
     { label: "Trades", icon: TrendingUp, href: "/trades", section: "EXECUTE" },
     { label: "Identity", icon: User, href: "/identity", section: "EXECUTE" },
     { label: "Rules", icon: Zap, href: "/rules", section: "EXECUTE" },
+    { label: "Analytics", icon: BarChart3, href: "/analytics", section: "EXECUTE" },
 ];
 
 export default function MobileNav() {
@@ -58,6 +62,10 @@ export default function MobileNav() {
             rating: 5
         };
         localStorage.setItem("emmanuel_journal_daily", JSON.stringify([newEntry, ...entries]));
+
+        // 🏆 Award XP
+        awardXP(15);
+
         setJournalNote("");
         setCaptureMode("menu");
         setCaptureOpen(false);
@@ -78,6 +86,10 @@ export default function MobileNav() {
             emotion: "Quick Logged"
         };
         localStorage.setItem("emmanuel_trades", JSON.stringify([newTrade, ...trades]));
+
+        // 🏆 Award XP
+        awardXP(newTrade.outcome === "WIN" ? 50 : 20);
+
         setTradePair(""); setTradeRR("");
         setCaptureMode("menu");
         setCaptureOpen(false);
@@ -236,6 +248,13 @@ export default function MobileNav() {
                             <button onClick={() => setMenuOpen(false)} className="p-2 bg-bg-surface border border-border rounded-full text-text-muted hover:text-white transition-colors">
                                 <X className="w-5 h-5" />
                             </button>
+                        </div>
+
+                        <div className="p-4 space-y-6">
+                            <div className="flex items-center justify-between">
+                                <h2 className="font-bebas text-xl tracking-wider">Navigation</h2>
+                                <ForgeLevelBadge compact />
+                            </div>
                         </div>
 
                         <div className="space-y-8">

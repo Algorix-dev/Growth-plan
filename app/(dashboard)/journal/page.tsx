@@ -11,6 +11,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { awardXP } from "@/components/shared/ForgeLevelBadge";
 
 interface DailyEntry {
     id: number;
@@ -96,6 +97,14 @@ export default function JournalPage() {
         };
         setDailyEntries([newEntry, ...dailyEntries]);
         setWins(""); setGaps(""); setFix(""); setDailyRating(null);
+
+        // 🏆 Award XP for Journal Entry
+        awardXP(15);
+
+        // ⚡ Trigger immediate sync
+        setTimeout(() => {
+            window.dispatchEvent(new CustomEvent("sync:now"));
+        }, 100);
     };
 
     const commitWeekly = () => {
@@ -107,6 +116,11 @@ export default function JournalPage() {
         };
         setWeeklyEntries([newEntry, ...weeklyEntries]);
         setAlignment(""); setDistraction(""); setNextWeek("");
+
+        // ⚡ Trigger immediate sync
+        setTimeout(() => {
+            window.dispatchEvent(new CustomEvent("sync:now"));
+        }, 100);
     };
 
     const commitMonthly = () => {
@@ -118,6 +132,11 @@ export default function JournalPage() {
         };
         setMonthlyEntries([newEntry, ...monthlyEntries]);
         setPillarsReview(""); setFinancialReview(""); setHabitReview("");
+
+        // ⚡ Trigger immediate sync
+        setTimeout(() => {
+            window.dispatchEvent(new CustomEvent("sync:now"));
+        }, 100);
     };
 
     const deleteDaily = (id: number) => setDailyEntries(dailyEntries.filter(e => e.id !== id));

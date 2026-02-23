@@ -195,8 +195,10 @@ async function main() {
     ]
 
     for (const h of habits) {
-        await prisma.habit.create({
-            data: h
+        await prisma.habit.upsert({
+            where: { id: h.label },
+            update: { category: h.category, color: h.color, order: h.order },
+            create: { id: h.label, ...h }
         })
     }
 

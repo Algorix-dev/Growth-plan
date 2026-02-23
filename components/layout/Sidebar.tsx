@@ -18,7 +18,8 @@ import {
     ChevronRight,
     ClipboardList,
     Moon,
-    Sun
+    Sun,
+    BarChart3
 } from "lucide-react";
 import { useState } from "react";
 import { useTheme } from "@/components/providers/ThemeProvider";
@@ -34,6 +35,7 @@ const navItems = [
     { label: "Trades", icon: TrendingUp, href: "/trades", section: "EXECUTE" },
     { label: "Identity", icon: User, href: "/identity", section: "EXECUTE" },
     { label: "Rules", icon: Zap, href: "/rules", section: "EXECUTE" },
+    { label: "Analytics", icon: BarChart3, href: "/analytics", section: "EXECUTE" },
 ];
 
 export default function Sidebar() {

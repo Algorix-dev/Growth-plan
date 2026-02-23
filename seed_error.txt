@@ -1,0 +1,5 @@
+Environment variables loaded from .env
+Running seed command `ts-node --compiler-options {"module":"CommonJS"} prisma/seed.ts` ...
+Seeding complete.
+
+The seed command has been executed.

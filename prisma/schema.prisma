@@ -14,6 +14,10 @@ model User {
   name          String
   createdAt     DateTime @default(now())
   
+  // Gamification
+  xp            Int      @default(0)
+  level         Int      @default(1)
+  
   // Relations
   habitLogs     HabitLog[]
   journalEntries JournalEntry[]
@@ -23,6 +27,7 @@ model User {
   courseProgress CourseTopicProgress[]
   courseScores  CourseScore[]
   goalProgress  GoalPhaseProgress[]
+  focusSessions FocusSession[]
 }
 
 model Course {
@@ -196,4 +201,15 @@ model GoalPhaseProgress {
   phase GoalPhase @relation(fields: [phaseId], references: [id])
   
   @@unique([userId, phaseId])
+}
+
+model FocusSession {
+  id        String   @id @default(cuid())
+  userId    String
+  duration  Int      // Duration in minutes
+  category  String   // "code", "study", "trade", "read", etc.
+  task      String?  // The specific block title
+  date      DateTime @default(now())
+  
+  user User @relation(fields: [userId], references: [id])
 }

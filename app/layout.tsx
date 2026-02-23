@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { Bebas_Neue, JetBrains_Mono, Crimson_Pro } from "next/font/google";
 import "./globals.css";
-import { Toaster } from "sonner";
+import { Toaster } from "sonner"; // Reverted to direct sonner import
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { UserProvider } from "@/components/providers/UserContext"; // Added UserProvider import
 
 const bebas = Bebas_Neue({
   weight: "400",
@@ -58,8 +59,10 @@ export default function RootLayout({
         className={`${bebas.variable} ${jetbrains.variable} ${crimson.variable} antialiased`}
       >
         <ThemeProvider>
-          {children}
-          <Toaster position="bottom-right" theme="dark" closeButton />
+          <UserProvider> {/* Wrapped children with UserProvider */}
+            {children}
+            <Toaster position="top-center" expand={true} richColors /> {/* Updated Toaster usage */}
+          </UserProvider>
           <Script src="/sw-register.js" strategy="afterInteractive" />
         </ThemeProvider>
       </body>

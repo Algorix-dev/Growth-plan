@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import Sidebar from "@/components/layout/Sidebar";
 import MobileNav from "@/components/layout/MobileNav";
 import DailyReflectionModal from "@/components/shared/DailyReflectionModal";
+import { SyncBridge } from "@/components/shared/SyncBridge";
 
 export default function DashboardLayout({
     children,
@@ -54,6 +55,7 @@ export default function DashboardLayout({
                 <MobileNav />
             </main>
             <DailyReflectionModal />
+            <SyncBridge />
         </div>
     );
 }

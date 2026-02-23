@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { MapPin, Info, Timer, Play, Pause, StopCircle } from "lucide-react";
 import { scheduleData, days, ScheduleBlock } from "@/lib/data";
+import { awardXP } from "@/components/shared/ForgeLevelBadge";
 
 export default function SchedulePage() {
     const [activeDay, setActiveDay] = useState(() => {
@@ -59,6 +60,18 @@ export default function SchedulePage() {
                     if (s <= 1) {
                         clearInterval(timerRef.current!);
                         setFocusRunning(false);
+                        // 🏆 Award XP for Pomodoro completion
+                        awardXP(50);
+                        // 📝 Log the focus session to localStorage
+                        const sessions = JSON.parse(localStorage.getItem("emmanuel_focus_sessions") || "[]");
+                        sessions.push({
+                            id: Date.now(),
+                            task: focusTask,
+                            duration: Math.round((focusSeconds - s + 1) / 60),
+                            date: new Date().toISOString(),
+                            category: "focus",
+                        });
+                        localStorage.setItem("emmanuel_focus_sessions", JSON.stringify(sessions));
                         return 0;
                     }
                     return s - 1;
@@ -68,7 +81,7 @@ export default function SchedulePage() {
             if (timerRef.current) clearInterval(timerRef.current);
         }
         return () => { if (timerRef.current) clearInterval(timerRef.current); };
-    }, [focusRunning]);
+    }, [focusRunning, focusTask, focusSeconds]);
 
     const initiateFocus = (taskTitle: string, defaultDurStr: string) => {
         let defaultMins = "90";

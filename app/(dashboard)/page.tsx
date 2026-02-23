@@ -4,14 +4,10 @@ import { useState, useEffect, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import {
-    CheckCircle2,
-    BookOpen,
-    TrendingUp,
-    Target,
-    Flame,
-    Timer
+    TrendingUp, Target, Clock, Zap, ChevronRight, LayoutDashboard, History, RotateCcw,
+    CheckCircle2, Flame, BookOpen
 } from "lucide-react";
-
+import { ForgeLevelBadge } from "@/components/shared/ForgeLevelBadge";
 import { initialGoals, initialCourses, initialHabits, Goal, Course, scheduleData, days, ScheduleBlock } from "@/lib/data";
 
 // Daily rotating quotes
@@ -93,6 +89,7 @@ export default function OverviewPage() {
 
     const [pillarProgress, setPillarProgress] = useState([0, 0, 0, 0, 0, 0]);
     const [startDate, setStartDate] = useState<string | null>(null);
+    const [weekCount, setWeekCount] = useState(0);
     const [countdown, setCountdown] = useState(getBirthdayCountdown());
     const [quote] = useState(getDailyQuote());
     const [currentBlock, setCurrentBlock] = useState<ScheduleBlock | null>(null);
@@ -113,14 +110,21 @@ export default function OverviewPage() {
     useEffect(() => {
         // --- Start Date ---
         const savedStart = localStorage.getItem("emmanuel_start_date");
-        if (savedStart) setStartDate(savedStart);
+        if (savedStart) {
+            setStartDate(savedStart);
+            const start = new Date(savedStart);
+            const now = new Date();
+            const diffTime = Math.abs(now.getTime() - start.getTime());
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            setWeekCount(Math.max(1, Math.ceil(diffDays / 7)));
+        }
 
         // --- Habits & Streak ---
         const savedHabits = localStorage.getItem("emmanuel_habits");
         const habitsData = savedHabits ? JSON.parse(savedHabits) : {};
 
-        const today = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"][new Date().getDay()];
-        const checkedToday = Object.keys(habitsData).filter(k => k.endsWith(`-${today}`) && habitsData[k]).length;
+        const todayStr = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"][new Date().getDay()];
+        const checkedToday = Object.keys(habitsData).filter(k => k.endsWith(`-${todayStr}`) && habitsData[k]).length;
 
         let totalChecked = 0;
         Object.values(habitsData).forEach(v => { if (v) totalChecked++; });
@@ -189,6 +193,7 @@ export default function OverviewPage() {
             const now = new Date().toISOString();
             localStorage.setItem("emmanuel_start_date", now);
             setStartDate(now);
+            setWeekCount(1);
         }
     }, []);
 
@@ -201,15 +206,49 @@ export default function OverviewPage() {
                     EP
                 </div>
 
-                <div className="relative z-10 space-y-6">
-                    <motion.p
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="font-mono text-[10px] tracking-[0.3em] uppercase text-gold"
-                    >
-                        Emmanuel Peter · 200L · Nigeria · Forging Phase
-                    </motion.p>
+                <div className="relative z-10 max-w-7xl mx-auto px-4">
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+                        <div className="space-y-6 flex-1">
+                            <div className="flex items-center gap-4">
+                                <div className="space-y-1">
+                                    <h2 className="text-4xl md:text-6xl font-bebas tracking-wider text-white">
+                                        Emmanuel <span className="text-gold">OS</span>
+                                    </h2>
+                                    <p className="font-mono text-[10px] md:text-xs uppercase tracking-[0.3em] text-gold/60">
+                                        System v4.0 • Deep Integration
+                                    </p>
+                                </div>
+                                <div className="h-px bg-gradient-to-r from-gold/50 to-transparent flex-1 hidden md:block" />
+                            </div>
 
+                            <div className="flex flex-wrap items-center gap-6">
+                                <ForgeLevelBadge />
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 rounded-full bg-green animate-pulse" />
+                                        <span className="font-bebas text-2xl tracking-wide">Active Growth Plan</span>
+                                    </div>
+                                    <p className="font-mono text-[10px] text-text-dim uppercase tracking-widest">
+                                        Week {weekCount} Status: Operational
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                            <button
+                                onClick={resetPlan}
+                                className="group flex items-center gap-2 px-4 py-2 bg-bg-surface border border-border rounded-lg hover:border-gold/40 hover:bg-gold/5 transition-all"
+                                title="Reset Plan"
+                            >
+                                <RotateCcw className="w-4 h-4 text-text-dim group-hover:text-gold transition-colors" />
+                                <span className="font-mono text-[10px] uppercase tracking-widest text-text-dim group-hover:text-gold">Restart</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="relative z-10 space-y-6">
                     <motion.h1
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -237,7 +276,7 @@ export default function OverviewPage() {
                         transition={{ delay: 0.25 }}
                         className="flex items-center gap-2 flex-wrap"
                     >
-                        <Timer className="w-3 h-3 text-gold shrink-0" />
+                        <Clock className="w-3 h-3 text-gold shrink-0" />
                         <span className="font-mono text-[9px] uppercase tracking-widest text-text-dim">18th Birthday:</span>
                         {[
                             { val: countdown.days, label: "d" },
