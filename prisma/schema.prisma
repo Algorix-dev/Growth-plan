@@ -260,10 +260,12 @@ model Exercise {
 model DailyEnergy {
   id      String   @id @default(cuid())
   userId  String
-  date    DateTime @unique @db.Date
+  date    DateTime @db.Date
   level   String   // low | medium | high
   
   user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, date])
 }
 
 model PillarXP {
@@ -289,9 +291,11 @@ model FeatureUnlock {
 model DailyPerformance {
   id               String   @id @default(cuid())
   userId           String
-  date             DateTime @unique @db.Date
+  date             DateTime @db.Date
   upsScore         Int      // Unified Performance Score (0-100)
   burnoutIndicator String   // Green | Yellow | Red
   
   user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, date])
 }
