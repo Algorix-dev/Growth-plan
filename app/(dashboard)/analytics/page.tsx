@@ -1,15 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
 import {
     BarChart3,
     Clock,
     Calendar,
     Zap,
-    TrendingUp,
-    ChevronLeft,
-    ChevronRight,
     Trophy
 } from "lucide-react";
 import {
@@ -219,7 +215,14 @@ export default function AnalyticsPage() {
     );
 }
 
-function StatCard({ label, value, icon: Icon, sub }: any) {
+interface StatCardProps {
+    label: string;
+    value: string;
+    icon: React.ElementType;
+    sub: string;
+}
+
+function StatCard({ label, value, icon: Icon, sub }: StatCardProps) {
     return (
         <div className="bg-bg-surface border border-border rounded-xl p-4 space-y-1 ring-1 ring-gold/0 hover:ring-gold/20 transition-all group">
             <div className="flex items-center justify-between mb-2">

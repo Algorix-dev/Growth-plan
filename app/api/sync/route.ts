@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
 export async function POST(req: NextRequest) {
-    const { userId, habits, focus, dailyJournal, trades, xp } = await req.json();
+    const { userId, focus, dailyJournal, trades, xp } = await req.json();
 
     if (!userId) {
         return NextResponse.json({ error: "Missing userId" }, { status: 400 });
@@ -90,19 +90,16 @@ export async function POST(req: NextRequest) {
         }
 
         // --- Return Full State for Syncing ---
-        const habitsRes = await prisma.habitLog.findMany({ where: { userId } });
+        // const habitsRes = await prisma.habitLog.findMany({ where: { userId } });
         const focusRes = await prisma.focusSession.findMany({ where: { userId }, orderBy: { date: 'desc' } });
         const tradesRes = await prisma.trade.findMany({ where: { userId }, orderBy: { createdAt: 'desc' } });
         const journalRes = await prisma.journalEntry.findMany({ where: { userId }, orderBy: { date: 'desc' } });
 
-        // Transform back to local format
-        const habitsMap: any = {};
-        habitsRes.forEach(h => {
-            // Reconstruct the key "Label-DAY"
-            // This is tricky because we don't store the label directly in HabitLog in the DB
-            // We'd need to join with Habit table or preserve keys better.
-            // For now we assume a simple direct mapping or skip if too complex for this turn.
-        });
+        // Transform back to local format (Placeholder if needed later)
+        // const habitsMap: Record<string, any> = {};
+        // habitsRes.forEach(h => {
+        //     // Reconstruct the key "Label-DAY"
+        // });
 
         return NextResponse.json({
             success: true,

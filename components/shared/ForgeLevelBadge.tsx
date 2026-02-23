@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { calculateLevel, getLevelTitle, xpForNextLevel } from "@/lib/xp";
+import { calculateLevel, getLevelTitle } from "@/lib/xp";
 import { Zap } from "lucide-react";
 
 const STORAGE_KEY = "emmanuel_forging_xp";

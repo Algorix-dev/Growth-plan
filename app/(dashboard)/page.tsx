@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import {
-    TrendingUp, Target, Clock, Zap, ChevronRight, LayoutDashboard, History, RotateCcw,
+    TrendingUp, Target, Clock, RotateCcw,
     CheckCircle2, Flame, BookOpen
 } from "lucide-react";
 import { ForgeLevelBadge } from "@/components/shared/ForgeLevelBadge";

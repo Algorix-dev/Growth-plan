@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useUser } from "@/components/providers/UserContext";
-import { toast } from "sonner";
 import { Cloud, CloudOff, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 
