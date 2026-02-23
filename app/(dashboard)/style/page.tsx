@@ -1,22 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     Sparkles,
     CheckCircle2,
     Clock,
     Shirt,
-    User,
-    ChevronRight,
-    Info,
     Droplets,
     Sun,
     Moon,
     Scissors,
     ShieldCheck,
     Accessibility,
-    Zap
+    Zap,
+    Info
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { awardXP } from "@/components/shared/ForgeLevelBadge";
@@ -227,7 +225,15 @@ export default function StylePage() {
     );
 }
 
-function GroomingSection({ title, icon, items, onToggle, progress }: any) {
+interface GroomingSectionProps {
+    title: string;
+    icon: React.ReactNode;
+    items: GroomingItem[];
+    onToggle: (id: string) => void;
+    progress: number;
+}
+
+function GroomingSection({ title, icon, items, onToggle, progress }: GroomingSectionProps) {
     return (
         <div className="bg-bg-surface border border-border rounded-2xl overflow-hidden shadow-sm">
             <div className="p-4 border-b border-border/50 flex items-center justify-between bg-white/[0.01]">
@@ -243,7 +249,7 @@ function GroomingSection({ title, icon, items, onToggle, progress }: any) {
                 </div>
             </div>
             <div className="divide-y divide-border/30">
-                {items.map((item: any) => (
+                {items.map((item) => (
                     <button
                         key={item.id}
                         onClick={() => onToggle(item.id)}
@@ -278,7 +284,13 @@ function GroomingSection({ title, icon, items, onToggle, progress }: any) {
     );
 }
 
-function FormulaCard({ title, components, context }: any) {
+interface FormulaCardProps {
+    title: string;
+    components: string[];
+    context: string;
+}
+
+function FormulaCard({ title, components, context }: FormulaCardProps) {
     return (
         <div className="bg-bg-surface border border-border rounded-2xl p-5 space-y-4 hover:border-gold/30 transition-all group">
             <div className="flex justify-between items-start">
@@ -301,7 +313,12 @@ function FormulaCard({ title, components, context }: any) {
     );
 }
 
-function RuleItem({ label, desc }: any) {
+interface RuleItemProps {
+    label: string;
+    desc: string;
+}
+
+function RuleItem({ label, desc }: RuleItemProps) {
     return (
         <div className="p-3 bg-bg-elevated rounded-xl border border-border/50">
             <p className="font-mono text-[9px] text-gold uppercase tracking-widest mb-1">{label}</p>
@@ -310,7 +327,13 @@ function RuleItem({ label, desc }: any) {
     );
 }
 
-function PresenceCard({ title, icon, points }: any) {
+interface PresenceCardProps {
+    title: string;
+    icon: React.ReactNode;
+    points: string[];
+}
+
+function PresenceCard({ title, icon, points }: PresenceCardProps) {
     return (
         <div className="bg-bg-surface border border-border rounded-2xl p-6 hover:border-gold/30 transition-all">
             <div className="flex items-center gap-3 mb-6">

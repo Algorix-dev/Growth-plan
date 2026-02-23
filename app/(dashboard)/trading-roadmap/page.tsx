@@ -1,24 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
-    TrendingUp,
-    BookOpen,
     ShieldCheck,
-    Brain,
     LineChart,
     Calculator,
     CheckCircle2,
-    AlertTriangle,
     Clock,
-    ArrowRight,
     Map,
-    Activity,
-    Lock
+    Activity
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import { awardXP } from "@/components/shared/ForgeLevelBadge";
 
 const ROADMAP_PHASES = [
     {
@@ -278,7 +271,13 @@ export default function TradingRoadmapPage() {
     );
 }
 
-function KillZoneCard({ title, time, note }: any) {
+interface KillZoneCardProps {
+    title: string;
+    time: string;
+    note: string;
+}
+
+function KillZoneCard({ title, time, note }: KillZoneCardProps) {
     return (
         <div className="bg-bg-surface border border-border rounded-3xl p-6 relative overflow-hidden group">
             <div className="absolute -right-4 -top-4 w-24 h-24 bg-gold/5 rounded-full blur-2xl group-hover:bg-gold/10 transition-all" />

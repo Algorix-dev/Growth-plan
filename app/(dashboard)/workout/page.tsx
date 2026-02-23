@@ -1,20 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
     Dumbbell,
     Flame,
     Zap,
     CheckCircle2,
-    Clock,
     RotateCcw,
-    ChevronRight,
     Plus,
-    Minus,
-    Trophy,
-    Info,
-    ArrowRight,
-    Sparkles
+    Info
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -23,9 +17,36 @@ import {
     MONTH_1,
     MONTH_2,
     MONTH_3,
-    UNIVERSAL_COMPONENTS,
-    WORKOUT_PLAN_METADATA
+    UNIVERSAL_COMPONENTS
 } from "@/lib/workout-data";
+
+interface WorkoutExercise {
+    id?: string;
+    name: string;
+    sets?: number;
+    reps?: string | number;
+    reps_note?: string;
+    duration?: string;
+    duration_seconds?: number | string;
+    rest_after?: string;
+    how: string;
+    tip?: string;
+    form_cues?: string[];
+}
+
+interface WorkoutBlock {
+    id: string;
+    name: string;
+    type: string;
+    rounds?: number;
+    round_duration?: string;
+    rest_between?: string;
+    exercise_duration_seconds?: number;
+    rest_between_exercises?: string;
+    rest_between_rounds?: string;
+    exercises: WorkoutExercise[];
+    note?: string;
+}
 
 export default function WorkoutPage() {
     // State management
@@ -45,7 +66,7 @@ export default function WorkoutPage() {
                 next.delete(id);
             } else {
                 next.add(id);
-                awardXP(15, xpType as any);
+                awardXP(15, xpType as "Technical" | "Math" | "Finance" | "Athletics" | "Social" | "Spirit");
             }
             return next;
         });
@@ -136,14 +157,12 @@ export default function WorkoutPage() {
                 {/* Navigation Sidebar (Modules) */}
                 <div className="lg:col-span-1 space-y-4">
                     <ModuleButton
-                        id="warmup"
                         label="Warm-Up"
                         icon={<Flame className="w-4 h-4" />}
                         active={activeSection === "warmup"}
                         onClick={() => setActiveSection("warmup")}
                     />
                     <ModuleButton
-                        id="main"
                         label="Main Session"
                         icon={<Zap className="w-4 h-4" />}
                         active={activeSection === "main"}
@@ -151,7 +170,6 @@ export default function WorkoutPage() {
                         subLabel={activeDay.theme}
                     />
                     <ModuleButton
-                        id="cooldown"
                         label="Cool-Down"
                         icon={<RotateCcw className="w-4 h-4" />}
                         active={activeSection === "cooldown"}
@@ -193,11 +211,10 @@ export default function WorkoutPage() {
                                 />
                             )}
 
-                            {activeSection === "main" && activeDay.blocks.map((block: any) => (
+                            {activeSection === "main" && activeDay.blocks.map((block: WorkoutBlock) => (
                                 <BlockView
                                     key={block.id}
                                     title={block.name}
-                                    type={block.type as any}
                                     rounds={getAdaptiveRounds(block.rounds || 0)}
                                     exercises={block.exercises}
                                     completedExercises={completedExercises}
@@ -222,7 +239,15 @@ export default function WorkoutPage() {
     );
 }
 
-function ModuleButton({ label, icon, active, onClick, subLabel }: any) {
+interface ModuleButtonProps {
+    label: string;
+    icon: React.ReactNode;
+    active: boolean;
+    onClick: () => void;
+    subLabel?: string;
+}
+
+function ModuleButton({ label, icon, active, onClick, subLabel }: ModuleButtonProps) {
     return (
         <button
             onClick={onClick}
@@ -248,7 +273,17 @@ function ModuleButton({ label, icon, active, onClick, subLabel }: any) {
     );
 }
 
-function BlockView({ title, exercises, completedExercises, onToggle, rounds, type, note }: any) {
+interface BlockViewProps {
+    title: string;
+    exercises: WorkoutExercise[];
+    completedExercises: Set<string>;
+    onToggle: (id: string) => void;
+    rounds?: number;
+    type?: string;
+    note?: string;
+}
+
+function BlockView({ title, exercises, completedExercises, onToggle, rounds = 0, note }: BlockViewProps) {
     return (
         <div className="bg-bg-surface border border-border rounded-[2.5rem] overflow-hidden">
             <div className="p-6 border-b border-border/50 flex items-center justify-between">
@@ -265,7 +300,7 @@ function BlockView({ title, exercises, completedExercises, onToggle, rounds, typ
             </div>
 
             <div className="divide-y divide-border/30">
-                {exercises.map((ex: any, idx: number) => {
+                {exercises.map((ex: WorkoutExercise, idx: number) => {
                     const id = ex.id || `gen-${title}-${idx}`;
                     const isCompleted = completedExercises.has(id);
                     return (

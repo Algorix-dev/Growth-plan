@@ -225,7 +225,12 @@ export default function MartialArtsPage() {
     );
 }
 
-function AuraStat({ icon, label }: any) {
+interface AuraStatProps {
+    icon: React.ReactNode;
+    label: string;
+}
+
+function AuraStat({ icon, label }: AuraStatProps) {
     return (
         <div className="flex items-center gap-2 bg-bg-surface border border-border/50 p-3 rounded-xl">
             <div className="text-gold w-3 h-3">{icon}</div>
@@ -234,7 +239,13 @@ function AuraStat({ icon, label }: any) {
     );
 }
 
-function RankStep({ rank, isActive, current }: any) {
+interface RankStepProps {
+    rank: string;
+    isActive?: boolean;
+    current?: boolean;
+}
+
+function RankStep({ rank, isActive, current }: RankStepProps) {
     return (
         <div className={cn(
             "flex items-center gap-3 p-3 rounded-xl border transition-all",

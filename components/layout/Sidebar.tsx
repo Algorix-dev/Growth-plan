@@ -16,7 +16,6 @@ import {
     LogOut,
     ChevronLeft,
     ChevronRight,
-    ClipboardList,
     Moon,
     Sun,
     BarChart3,
