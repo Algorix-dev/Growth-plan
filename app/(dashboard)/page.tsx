@@ -176,7 +176,7 @@ export default function OverviewPage() {
             consecutiveFailures: 0
         });
         setBurnout(risk);
-    }, []);
+    }, [weekCount]);
 
     const resetPlan = useCallback(() => {
         if (confirm("Restart your Growth Plan? Week 1 will begin from today.")) {

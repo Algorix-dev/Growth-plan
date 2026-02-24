@@ -47,7 +47,7 @@ export default function HabitsPage() {
                 // setWeek(currentWeek); // Optional: default to latest week
             }
         }
-    }, []);
+    }, [week]);
 
     // Update Date Range whenever week changes
     useEffect(() => {

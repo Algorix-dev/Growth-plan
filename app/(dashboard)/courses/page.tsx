@@ -43,6 +43,8 @@ export default function CoursesPage() {
     const [loaded, setLoaded] = useState(false);
 
     // Scoring Modal State
+    const [scoreModal, setScoreModal] = useState<string | null>(null);
+    const [scoreLabel, setScoreLabel] = useState("");
     const [scoreVal, setScoreVal] = useState("");
 
     // Topic Addition State
