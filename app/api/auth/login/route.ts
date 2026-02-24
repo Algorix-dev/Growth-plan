@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { createHash } from "crypto";
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 const AUTHORIZED_EMAIL = "emmytech2008@gmail.com";
 
 function hashPassword(password: string) {
