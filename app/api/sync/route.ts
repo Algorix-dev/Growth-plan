@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
 export async function POST(req: NextRequest) {
-    const { userId, focus, dailyJournal, trades, xp, energy, pillarXP, habitLogs } = await req.json();
+    const { userId, focus, dailyJournal, trades, xp, energy, pillarXP, habitLogs, workoutLogs, martialArtLogs } = await req.json();
 
     if (!userId) {
         return NextResponse.json({ error: "Missing userId" }, { status: 400 });
@@ -152,6 +152,58 @@ export async function POST(req: NextRequest) {
             }
         }
 
+        // --- Sync Workouts ---
+        if (workoutLogs && Array.isArray(workoutLogs)) {
+            for (const w of workoutLogs) {
+                await prisma.workoutLog.upsert({
+                    where: {
+                        userId_date_exerciseId: {
+                            userId,
+                            date: new Date(w.date),
+                            exerciseId: w.exerciseId
+                        }
+                    },
+                    update: {
+                        completed: w.completed,
+                        month: w.month,
+                        week: w.week
+                    },
+                    create: {
+                        userId,
+                        date: new Date(w.date),
+                        exerciseId: w.exerciseId,
+                        completed: w.completed,
+                        month: w.month,
+                        week: w.week
+                    }
+                });
+            }
+        }
+
+        // --- Sync Martial Arts ---
+        if (martialArtLogs && Array.isArray(martialArtLogs)) {
+            for (const m of martialArtLogs) {
+                await prisma.martialArtLog.upsert({
+                    where: {
+                        userId_date_techniqueId: {
+                            userId,
+                            date: new Date(m.date),
+                            techniqueId: m.techniqueId
+                        }
+                    },
+                    update: {
+                        completed: m.completed
+                    },
+                    create: {
+                        userId,
+                        date: new Date(m.date),
+                        techniqueId: m.techniqueId,
+                        completed: m.completed
+                    }
+                });
+            }
+        }
+
         // --- Return Full State for Syncing ---
         const habitsRes = await prisma.habitLog.findMany({
             where: { userId },
@@ -213,6 +265,18 @@ export async function POST(req: NextRequest) {
                     gaps: j.gaps,
                     fix: j.fixTomorrow,
                     rating: j.rating
+                })),
+                workoutLogs: (await prisma.workoutLog.findMany({ where: { userId } })).map(w => ({
+                    exerciseId: w.exerciseId,
+                    date: w.date.toISOString().split('T')[0],
+                    completed: w.completed,
+                    month: w.month,
+                    week: w.week
+                })),
+                martialArtLogs: (await prisma.martialArtLog.findMany({ where: { userId } })).map(m => ({
+                    techniqueId: m.techniqueId,
+                    date: m.date.toISOString().split('T')[0],
+                    completed: m.completed
                 }))
             }
         });

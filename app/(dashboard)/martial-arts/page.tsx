@@ -95,9 +95,27 @@ export default function MartialArtsPage() {
 
     const activeMonthData = CURRICULUM.find(c => c.month === selectedMonth)!;
 
-    const toggleTech = (id: string) => {
-        setCheckedTechs(prev => ({ ...prev, [id]: !prev[id] }));
-        if (!checkedTechs[id]) awardXP(5, "Athletics");
+    const toggleTech = (techniqueId: string) => {
+        const today = new Date().toISOString().split('T')[0];
+        const newTechs = { ...checkedTechs, [techniqueId]: !checkedTechs[techniqueId] };
+        setCheckedTechs(newTechs);
+
+        // Sync to v2 DB structure
+        interface MALog {
+            techniqueId: string;
+            date: string;
+            completed: boolean;
+        }
+        const maLogs: MALog[] = JSON.parse(localStorage.getItem("emmanuel_ma_logs") || "[]");
+        const idx = maLogs.findIndex((l: MALog) => l.techniqueId === techniqueId && l.date === today);
+        if (idx >= 0) {
+            maLogs.splice(idx, 1);
+        } else {
+            maLogs.push({ techniqueId, date: today, completed: true });
+            awardXP(5, "Athletics");
+        }
+        localStorage.setItem("emmanuel_ma_logs", JSON.stringify(maLogs));
+        window.dispatchEvent(new CustomEvent("sync:now"));
     };
 
     const getAdaptiveTarget = (base: string) => {
@@ -113,14 +131,22 @@ export default function MartialArtsPage() {
     };
 
     const logDrills = (reps: number) => {
+        if (drillCount + reps < 0) return;
         setIsLogging(true);
         setTimeout(() => {
-            setDrillCount(prev => prev + reps);
-            // Dynamic XP based on intensity
-            const xpAmount = energy === "high" ? 75 : energy === "low" ? 30 : 50;
-            awardXP(reps > 100 ? xpAmount : 20, "Athletics");
+            const newCount = drillCount + reps;
+            setDrillCount(newCount);
+            // Save to local for dashboard sync
+            localStorage.setItem("emmanuel_martial_drills_today", newCount.toString());
+
+            // Dynamic XP based on intensity (only for positive additions)
+            if (reps > 0) {
+                const xpAmount = energy === "high" ? 75 : energy === "low" ? 30 : 50;
+                awardXP(reps > 100 ? xpAmount : 20, "Athletics");
+            }
             setIsLogging(false);
-        }, 600);
+            window.dispatchEvent(new CustomEvent("sync:now"));
+        }, 300);
     };
 
     return (
@@ -128,22 +154,22 @@ export default function MartialArtsPage() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-2 mb-3">
                         <Sword className="w-5 h-5 text-gold" />
-                        <span className="font-mono text-[10px] text-gold uppercase tracking-[0.2em]">The Warrior Path</span>
+                        <span className="font-mono text-[10px] text-gold uppercase tracking-[0.3em] opacity-80">Manual of Arms & Strategy</span>
                     </div>
-                    <h1 className="font-bebas text-5xl text-gold tracking-tight lowercase">Martial Curriculum</h1>
+                    <h1 className="font-bebas text-5xl md:text-6xl text-text tracking-tight lowercase">Martial <span className="text-gold">Curriculum</span></h1>
                 </div>
 
-                <div className="flex bg-bg-surface border border-border p-1 rounded-xl">
+                <div className="flex bg-bg-surface border border-border p-1 rounded-2xl shadow-sm -mx-4 px-4 md:mx-0 md:px-1">
                     {CURRICULUM.map((c) => (
                         <button
                             key={c.month}
                             onClick={() => setSelectedMonth(c.month)}
                             className={cn(
-                                "px-4 py-2 rounded-lg font-mono text-[10px] uppercase transition-all",
+                                "flex-1 px-4 py-3 rounded-xl font-mono text-[10px] uppercase transition-all tracking-widest",
                                 selectedMonth === c.month
-                                    ? "bg-gold text-bg-dark font-bold shadow-lg shadow-gold/10"
+                                    ? "bg-gold text-bg-dark font-bold shadow-xl shadow-gold/10"
                                     : "text-text-dim hover:text-text"
                             )}
                         >
@@ -180,19 +206,19 @@ export default function MartialArtsPage() {
                                             key={tech.id}
                                             onClick={() => toggleTech(tech.id)}
                                             className={cn(
-                                                "flex items-center gap-3 p-3 bg-bg-elevated border rounded-2xl transition-all cursor-pointer group/item",
-                                                checkedTechs[tech.id] ? "border-green/30 bg-green/5" : "border-border/50 hover:border-gold/30"
+                                                "flex items-center gap-4 p-5 bg-bg-surface/50 border rounded-[2rem] transition-all cursor-pointer group/item",
+                                                checkedTechs[tech.id] ? "border-green/30 bg-green/5" : "border-border/50 hover:border-gold/30 hover:bg-bg-surface"
                                             )}
                                         >
                                             <div className={cn(
-                                                "w-6 h-6 rounded-lg flex items-center justify-center font-mono text-[10px] transition-colors",
-                                                checkedTechs[tech.id] ? "bg-green/20 text-green" : "bg-gold/10 text-gold"
+                                                "w-8 h-8 rounded-xl flex items-center justify-center font-mono text-[11px] transition-colors shrink-0",
+                                                checkedTechs[tech.id] ? "bg-green text-bg-dark" : "bg-gold/10 text-gold"
                                             )}>
-                                                {checkedTechs[tech.id] ? <CheckCircle2 className="w-3 h-3" /> : (i + 1)}
+                                                {checkedTechs[tech.id] ? <CheckCircle2 className="w-4 h-4" /> : (i + 1)}
                                             </div>
                                             <span className={cn(
-                                                "text-xs font-medium tracking-tight transition-all",
-                                                checkedTechs[tech.id] ? "text-text line-through opacity-50" : "text-text-dim"
+                                                "text-[13px] font-medium tracking-tight transition-all",
+                                                checkedTechs[tech.id] ? "text-text line-through opacity-40" : "text-text"
                                             )}>
                                                 {tech.title}
                                             </span>
@@ -200,22 +226,24 @@ export default function MartialArtsPage() {
                                     ))}
                                 </div>
 
-                                <div className="pt-6 border-t border-border/50">
-                                    <h3 className="font-mono text-[9px] uppercase tracking-widest text-text-dim mb-3">Daily Focus Drill</h3>
-                                    <div className="flex items-center justify-between p-4 bg-gold/5 border border-gold/10 rounded-2xl">
-                                        <div className="flex gap-4 items-center">
-                                            <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center">
-                                                <Target className="w-5 h-5 text-gold" />
+                                <div className="pt-8 border-t border-border/50">
+                                    <h3 className="font-mono text-[10px] uppercase tracking-widest text-text-dim mb-4 px-2 opacity-60">Daily Focus Drill</h3>
+                                    <div className="flex flex-col md:flex-row items-center justify-between p-6 bg-gold/5 border border-gold/10 rounded-[2.5rem] gap-6">
+                                        <div className="flex gap-5 items-center w-full">
+                                            <div className="w-14 h-14 rounded-3xl bg-gold/10 flex items-center justify-center shrink-0 shadow-lg shadow-gold/5">
+                                                <Target className="w-7 h-7 text-gold" />
                                             </div>
                                             <div>
-                                                <p className="text-sm text-text-muted font-bold">{getAdaptiveTarget(activeMonthData.daily_drill)}</p>
-                                                <p className="text-[10px] text-text-dim font-mono tracking-tight uppercase">Perfect form over speed</p>
+                                                <p className="text-base text-text font-bold leading-tight">{getAdaptiveTarget(activeMonthData.daily_drill)}</p>
+                                                <p className="text-[10px] text-text-muted font-mono tracking-tight uppercase mt-1 opacity-80">Precision & Intention over Speed</p>
                                             </div>
                                         </div>
-                                        <div className="h-8 w-[1px] bg-gold/20 mr-4" />
-                                        <div className="text-right">
-                                            <p className="font-bebas text-2xl text-gold leading-none">10,000</p>
-                                            <p className="text-[8px] font-mono text-text-dim uppercase">Total Target</p>
+                                        <div className="hidden md:block h-10 w-[1px] bg-gold/20" />
+                                        <div className="text-center md:text-right w-full md:w-auto flex md:flex-col items-center md:items-end justify-between md:justify-center border-t md:border-t-0 border-gold/10 pt-4 md:pt-0">
+                                            <div>
+                                                <p className="font-bebas text-3xl text-gold leading-none">10,000</p>
+                                                <p className="text-[9px] font-mono text-text-dim uppercase tracking-widest">Total Reps Target</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -244,41 +272,65 @@ export default function MartialArtsPage() {
 
                 {/* Tracking Column */}
                 <div className="space-y-6">
-                    <div className="bg-bg-surface border border-border rounded-3xl p-6 space-y-4">
+                    <div className="bg-bg-surface border border-border rounded-[2.5rem] p-8 space-y-6 shadow-sm">
                         <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-bebas text-lg text-text shadow-sm uppercase tracking-wider">Drill Tracker</h4>
-                            <div className="flex items-center gap-1 text-gold">
-                                <Activity className="w-3 h-3" />
-                                <span className="font-mono text-[10px] tracking-widest uppercase">
-                                    {energy === "high" ? "Elite Intensity" : energy === "low" ? "Recovery Mode" : "Standard"}
+                            <h4 className="font-bebas text-xl text-text uppercase tracking-widest">Drill Progress</h4>
+                            <div className="flex items-center gap-2 text-gold px-3 py-1 bg-gold/10 rounded-full border border-gold/20">
+                                <Activity className="w-3.5 h-3.5" />
+                                <span className="font-mono text-[10px] tracking-widest uppercase font-bold">
+                                    {energy === "high" ? "Elite" : energy === "low" ? "Recov" : "Std"}
                                 </span>
                             </div>
                         </div>
 
-                        <div className="flex flex-col items-center py-8 bg-bg-elevated rounded-2xl border border-border/50">
-                            <span className="font-bebas text-7xl text-gold leading-none">{drillCount}</span>
-                            <span className="font-mono text-[10px] text-text-dim uppercase tracking-widest mt-2">Daily Reps</span>
+                        <div className="flex flex-col items-center py-8 bg-bg-surface/40 rounded-[2rem] border border-border/50 relative overflow-hidden group/drill">
+                            <div className="absolute inset-x-0 bottom-0 h-1 bg-gold/10" />
+                            <input
+                                type="number"
+                                value={drillCount}
+                                onChange={(e) => setDrillCount(Math.max(0, parseInt(e.target.value) || 0))}
+                                className="font-bebas text-8xl text-text bg-transparent text-center w-full focus:outline-none focus:text-gold transition-colors"
+                            />
+                            <span className="font-mono text-[10px] text-text-dim uppercase tracking-widest mt-2 opacity-60">Reps Banked Today</span>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3">
-                            <button
-                                onClick={() => logDrills(50)}
-                                disabled={isLogging}
-                                className="py-4 bg-bg-elevated border border-border rounded-xl font-bebas text-xl text-text hover:border-gold/30 active:scale-95 transition-all flex items-center justify-center gap-2"
-                            >
-                                {isLogging ? <RotateCcw className="w-4 h-4 animate-spin text-gold" /> : "+50"}
-                            </button>
-                            <button
-                                onClick={() => logDrills(200)}
-                                disabled={isLogging}
-                                className="py-4 bg-gold text-bg-dark rounded-xl font-bebas text-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center shadow-lg shadow-gold/20"
-                            >
-                                {isLogging ? <RotateCcw className="w-4 h-4 animate-spin" /> : "+200"}
-                            </button>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="flex flex-col gap-3">
+                                <button
+                                    onClick={() => logDrills(50)}
+                                    disabled={isLogging}
+                                    className="py-5 bg-bg-surface border border-border rounded-3xl font-bebas text-2xl text-text hover:border-gold/40 active:scale-95 transition-all flex items-center justify-center group"
+                                >
+                                    {isLogging ? <RotateCcw className="w-4 h-4 animate-spin text-gold" /> : <span className="group-hover:text-gold transition-colors">+50</span>}
+                                </button>
+                                <button
+                                    onClick={() => logDrills(-50)}
+                                    disabled={isLogging || drillCount < 50}
+                                    className="py-3 bg-red/5 border border-red/20 rounded-2xl font-bebas text-sm text-red/60 hover:bg-red/10 active:scale-95 transition-all tracking-wider"
+                                >
+                                    -50
+                                </button>
+                            </div>
+                            <div className="flex flex-col gap-3">
+                                <button
+                                    onClick={() => logDrills(200)}
+                                    disabled={isLogging}
+                                    className="py-5 bg-gold text-bg-dark rounded-3xl font-bebas text-2xl hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center shadow-xl shadow-gold/20"
+                                >
+                                    {isLogging ? <RotateCcw className="w-4 h-4 animate-spin" /> : "+200"}
+                                </button>
+                                <button
+                                    onClick={() => logDrills(-200)}
+                                    disabled={isLogging || drillCount < 200}
+                                    className="py-3 bg-red/5 border border-red/20 rounded-2xl font-bebas text-sm text-red/60 hover:bg-red/10 active:scale-95 transition-all tracking-wider"
+                                >
+                                    -200
+                                </button>
+                            </div>
                         </div>
 
-                        <p className="text-[10px] text-text-dim text-center font-mono uppercase tracking-tighter leading-relaxed pt-2 px-2">
-                            Logging 200+ reps awards <span className="text-gold font-bold">50 XP</span> to Athletic Pillar.
+                        <p className="text-[10px] text-text-dim text-center font-mono uppercase tracking-tight leading-relaxed pt-2 opacity-60">
+                            Drilling builds the <span className="text-gold opacity-100">subconscious weapon</span>.
                         </p>
                     </div>
 

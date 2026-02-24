@@ -1,5 +1,48 @@
-// 3-Month Adaptive Workout Database
-// Extracted from workout-plan-v2.md
+export interface WorkoutExercise {
+    id: string;
+    name: string;
+    sets?: number;
+    reps?: string | number;
+    reps_note?: string;
+    duration?: string;
+    duration_seconds?: number | string;
+    rest_after?: string;
+    how: string;
+    tip?: string;
+    form_cues?: string[];
+    category?: string;
+    difficulty?: string;
+}
+
+export interface WorkoutBlock {
+    id: string;
+    name: string;
+    type: string;
+    rounds: number;
+    round_duration?: string;
+    rest_between?: string;
+    exercise_duration_seconds?: number;
+    rest_between_exercises?: string;
+    rest_between_rounds?: string;
+    exercises: WorkoutExercise[];
+    note?: string;
+}
+
+export interface WorkoutDay {
+    day: string;
+    theme: string;
+    color: string;
+    estimated_duration: string;
+    blocks: WorkoutBlock[];
+}
+
+export interface WorkoutMonth {
+    month: number;
+    days: WorkoutDay[];
+    push_rounds?: number;
+    core_rounds?: number;
+    modifications?: Record<string, unknown>;
+}
 
 export const WORKOUT_PLAN_METADATA = {
     version: "2.0",
@@ -21,25 +64,26 @@ export const UNIVERSAL_COMPONENTS = {
         id: "wu-01",
         name: "Joint Mobility + Core Activation",
         exercises: [
-            { name: "Neck, Shoulder, Hip, Knee, Ankle Circles", sets: 1, reps: "10-15 each", how: "Slow controlled rotation of every joint.", tip: "Never skip mobility. Joints are the hinges — keep them oiled." },
-            { name: "Cat-Cow Stretch", sets: 1, reps: "10 reps", how: "On all fours. Inhale, arch back (look up). Exhale, round back (look down).", tip: "Wakes up the spine." },
-            { name: "Bird-Dog", sets: 1, reps: "10 each side", how: "Opposite arm and leg extension. Hold for 2 seconds. Squeeze core.", tip: "Fundamental for lower back health." },
-            { name: "Dynamic Leg Swings", sets: 1, reps: "12 each way", how: "Forward/backward and side-to-side swings. Increasing range gradually.", tip: "Essential before any explosive work." }
+            { id: "wu-jnt", name: "Neck, Shoulder, Hip, Knee, Ankle Circles", sets: 1, reps: "10-15 each", how: "Slow controlled rotation of every joint.", tip: "Never skip mobility. Joints are the hinges — keep them oiled." },
+            { id: "wu-ccw", name: "Cat-Cow Stretch", sets: 1, reps: "10 reps", how: "On all fours. Inhale, arch back (look up). Exhale, round back (look down).", tip: "Wakes up the spine." },
+            { id: "wu-bdg", name: "Bird-Dog", sets: 1, reps: "10 each side", how: "Opposite arm and leg extension. Hold for 2 seconds. Squeeze core.", tip: "Fundamental for lower back health." },
+            { id: "wu-lsw", name: "Dynamic Leg Swings", sets: 1, reps: "12 each way", how: "Forward/backward and side-to-side swings. Increasing range gradually.", tip: "Essential before any explosive work." }
         ]
     },
     cool_down: {
         id: "cd-01",
         name: "Extended Flexibility Flush",
         exercises: [
-            { name: "Child’s Pose", duration: "60 seconds", how: "Knees wide, toes touching. Sit back on heels, reach arms forward on floor.", tip: "Calms the nervous system." },
-            { name: "Pigeon Pose", duration: "60 seconds each side", how: "One leg bent in front, other straight behind. Fold over front leg.", tip: "Opens the hips — crucial for kicks and agility." },
-            { name: "Cobra Stretch", duration: "45 seconds", how: "Lie on belly, press chest up. Keep hips on floor.", tip: "Stretches abs and spine." },
-            { name: "Deep Squat Hold", duration: "60 seconds", how: "Full depth squat, elbows inside knees, chest up.", tip: "Builds permanent mobility." }
+            { id: "cd-chp", name: "Child’s Pose", duration: "60 seconds", how: "Knees wide, toes touching. Sit back on heels, reach arms forward on floor.", tip: "Calms the nervous system." },
+            { id: "cd-pgn", name: "Pigeon Pose", duration: "60 seconds each side", how: "One leg bent in front, other straight behind. Fold over front leg.", tip: "Opens the hips — crucial for kicks and agility." },
+            { id: "cd-cbr", name: "Cobra Stretch", duration: "45 seconds", how: "Lie on belly, press chest up. Keep hips on floor.", tip: "Stretches abs and spine." },
+            { id: "cd-dsh", name: "Deep Squat Hold", duration: "60 seconds", how: "Full depth squat, elbows inside knees, chest up.", tip: "Builds permanent mobility." }
         ]
     }
 };
 
-export const MONTH_1 = {
+export const MONTH_1: WorkoutMonth = {
+    month: 1,
     push_rounds: 3,
     core_rounds: 3,
     days: [
@@ -179,6 +223,7 @@ export const MONTH_1 = {
                     id: "m1-sat-flex",
                     name: "Extended Flexibility Block",
                     type: "flexibility",
+                    rounds: 1,
                     exercises: [
                         { id: "m1-sat-f1", name: "Deep Morning Sequence", duration_seconds: "Extended", how: "Full morning sequence with 45s holds.", tip: "Work the tightest areas today." },
                         { id: "m1-sat-f2", name: "Pancake Stretch", duration_seconds: 60, how: "Sit wide, fold forward. Reach from hips.", tip: "Opens inner thighs for wide kicks." }
@@ -188,6 +233,7 @@ export const MONTH_1 = {
                     id: "m1-sat-ma",
                     name: "Martial Arts Drilling",
                     type: "skill",
+                    rounds: 1,
                     exercises: [
                         { id: "m1-sat-ma1", name: "Jab-Cross Drill (200 Reps)", reps: 200, how: "Slow and precise. Focus on hip rotation.", tip: "Builds pattern into muscle memory." }
                     ]
@@ -204,6 +250,7 @@ export const MONTH_1 = {
                     id: "m1-sun-recovery",
                     name: "Recovery & Mobility",
                     type: "recovery",
+                    rounds: 1,
                     exercises: [
                         { id: "m1-sun-r1", name: "Morning Flexibility", duration_seconds: 600, how: "Full 10-minute sequence." },
                         { id: "m1-sun-r2", name: "Light Walk", duration_seconds: 1200, how: "Comfortable pace outside." },
@@ -215,10 +262,110 @@ export const MONTH_1 = {
     ]
 };
 
-// Simplified versions of Month 2 and 3 for the demo/prototype
-// In a real app, these would be fully populated
-export const MONTH_2 = { ...MONTH_1, month: 2 };
-export const MONTH_3 = { ...MONTH_1, month: 3 };
+export const MONTH_2: WorkoutMonth = {
+    ...MONTH_1,
+    month: 2,
+    push_rounds: 4,
+    core_rounds: 3,
+    modifications: {
+        plank_duration_seconds: 45,
+        hollow_body_duration_seconds: 30,
+        dead_hang_target_seconds: 45
+    },
+    days: MONTH_1.days.map(day => {
+        const newDay = { ...day };
+        if (day.day === "Monday") {
+            newDay.blocks = day.blocks.map(block => {
+                if (block.type === "push") {
+                    return {
+                        ...block,
+                        rounds: 4,
+                        exercises: block.exercises.map(ex => {
+                            if (ex.id === "m1-mon-p3b") {
+                                return {
+                                    id: "m2-new-01",
+                                    name: "Archer Push-Ups",
+                                    category: "push",
+                                    difficulty: "intermediate",
+                                    sets: 3,
+                                    reps: "5 each side",
+                                    how: "Lower toward one hand while keeping other arm straight.",
+                                    tip: "Builds extreme unilateral strength."
+                                };
+                            }
+                            return ex;
+                        })
+                    };
+                }
+                return block;
+            });
+        }
+        if (day.day === "Wednesday") {
+            newDay.blocks = day.blocks.map(block => {
+                if (block.type === "pull") {
+                    return {
+                        ...block,
+                        exercises: [
+                            ...block.exercises,
+                            {
+                                id: "m2-new-02",
+                                name: "Negative Pull-Ups",
+                                category: "pull",
+                                difficulty: "intermediate",
+                                sets: 5,
+                                reps: 3,
+                                how: "Lower yourself as slowly as possible (5s).",
+                                tip: "Fast-track to your first pull-up."
+                            }
+                        ]
+                    };
+                }
+                return block;
+            });
+        }
+        return newDay;
+    })
+};
+
+export const MONTH_3: WorkoutMonth = {
+    ...MONTH_2,
+    month: 3,
+    push_rounds: 4,
+    core_rounds: 3,
+    modifications: {
+        plank_duration_seconds: 60,
+        hollow_body_duration_seconds: 45,
+        dead_hang_target_seconds: 60
+    },
+    days: MONTH_2.days.map(day => {
+        const newDay = { ...day };
+        if (day.day === "Monday") {
+            newDay.blocks = day.blocks.map(block => {
+                if (block.type === "push") {
+                    return {
+                        ...block,
+                        exercises: block.exercises.map(ex => {
+                            if (ex.id === "m1-mon-p1") {
+                                return {
+                                    ...ex,
+                                    id: "m3-new-01",
+                                    name: "Clap Push-Ups",
+                                    difficulty: "advanced",
+                                    reps: 5,
+                                    how: "Explode up and clap hands in mid-air.",
+                                    tip: "Developing extreme upper body power."
+                                };
+                            }
+                            return ex;
+                        })
+                    };
+                }
+                return block;
+            });
+        }
+        return newDay;
+    })
+};
 
 export const MILESTONES = [
     { month: 1, end: { pushups: 15, hang: 30, plank: 45, flexibility: "Fingertips to floor" } },

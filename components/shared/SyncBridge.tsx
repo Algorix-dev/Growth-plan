@@ -26,6 +26,10 @@ export function SyncBridge() {
             const pillarXP = JSON.parse(localStorage.getItem("emmanuel_sync_pillar_xp") || "[]");
             const energy = localStorage.getItem("emmanuel_energy_level") || "medium";
 
+            // v2: Sync logs
+            const workoutLogs = JSON.parse(localStorage.getItem("emmanuel_workout_logs") || "[]");
+            const martialArtLogs = JSON.parse(localStorage.getItem("emmanuel_ma_logs") || "[]");
+
             // Transform habitsRaw to HabitLog array for server
             // Format: { habitId, date, completed, week }
             const habitLogs = Object.entries(habitsRaw).map(([key, val]) => {
@@ -57,7 +61,9 @@ export function SyncBridge() {
                     trades,
                     xp,
                     pillarXP,
-                    energy
+                    energy,
+                    workoutLogs,
+                    martialArtLogs
                 }),
             });
 
@@ -90,6 +96,14 @@ export function SyncBridge() {
                 }
                 if (dailyJournal.length === 0 && state.journal) {
                     localStorage.setItem("emmanuel_journal_daily", JSON.stringify(state.journal));
+                }
+
+                // v2: Update Workouts & Martial Arts
+                if (state.workoutLogs) {
+                    localStorage.setItem("emmanuel_workout_logs", JSON.stringify(state.workoutLogs));
+                }
+                if (state.martialArtLogs) {
+                    localStorage.setItem("emmanuel_ma_logs", JSON.stringify(state.martialArtLogs));
                 }
             } else {
                 throw new Error("Sync failed");

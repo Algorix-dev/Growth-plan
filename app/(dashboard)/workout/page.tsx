@@ -1,51 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     Dumbbell,
     Flame,
     Zap,
     CheckCircle2,
     RotateCcw,
+    Clock,
     Plus,
     Info
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { awardXP } from "@/components/shared/ForgeLevelBadge";
-import {
-    MONTH_1,
-    MONTH_2,
-    MONTH_3,
-    UNIVERSAL_COMPONENTS
-} from "@/lib/workout-data";
+import { WorkoutTimer } from "@/components/shared/WorkoutTimer";
+import { MONTH_1, MONTH_2, MONTH_3, UNIVERSAL_COMPONENTS, WorkoutDay, WorkoutBlock, WorkoutExercise } from "@/lib/workout-data";
 
-interface WorkoutExercise {
-    id?: string;
-    name: string;
-    sets?: number;
-    reps?: string | number;
-    reps_note?: string;
-    duration?: string;
-    duration_seconds?: number | string;
-    rest_after?: string;
-    how: string;
-    tip?: string;
-    form_cues?: string[];
-}
-
-interface WorkoutBlock {
-    id: string;
-    name: string;
-    type: string;
-    rounds?: number;
-    round_duration?: string;
-    rest_between?: string;
-    exercise_duration_seconds?: number;
-    rest_between_exercises?: string;
-    rest_between_rounds?: string;
-    exercises: WorkoutExercise[];
-    note?: string;
+interface WorkoutLog {
+    exerciseId: string;
+    date: string;
+    completed: boolean;
+    month?: number;
+    week?: number;
 }
 
 export default function WorkoutPage() {
@@ -53,29 +30,100 @@ export default function WorkoutPage() {
     const [month, setMonth] = useState(1);
     const [energyLevel, setEnergyLevel] = useState<"low" | "medium" | "high">("medium");
     const [selectedDayIndex, setSelectedDayIndex] = useState(new Date().getDay() === 0 ? 6 : new Date().getDay() - 1);
-    const [completedExercises, setCompletedExercises] = useState<Set<string>>(new Set());
     const [activeSection, setActiveSection] = useState<"warmup" | "main" | "cooldown">("main");
 
-    const activeMonthData = month === 1 ? MONTH_1 : month === 2 ? MONTH_2 : MONTH_3;
-    const activeDay = activeMonthData.days[selectedDayIndex];
+    // Timer State
+    const [timerState, setTimerState] = useState({
+        isOpen: false,
+        seconds: 60,
+        title: ""
+    });
 
-    const toggleExercise = (id: string, xpType: string = "Athletics") => {
-        setCompletedExercises(prev => {
-            const next = new Set(prev);
-            if (next.has(id)) {
-                next.delete(id);
-            } else {
-                next.add(id);
-                awardXP(15, xpType as "Technical" | "Math" | "Finance" | "Athletics" | "Social" | "Spirit");
-            }
-            return next;
-        });
+    const openTimer = (seconds: number, title: string) => {
+        setTimerState({ isOpen: true, seconds, title });
     };
 
-    const getAdaptiveRounds = (baseRounds: number) => {
-        if (energyLevel === "low") return baseRounds;
-        if (energyLevel === "medium") return baseRounds + 1;
-        return baseRounds + 2;
+    // Load completion state from storage (synced via SyncBridge)
+    const [workoutLogs, setWorkoutLogs] = useState<WorkoutLog[]>([]);
+
+    useEffect(() => {
+        const savedLogs = JSON.parse(localStorage.getItem("emmanuel_workout_logs") || "[]");
+        setWorkoutLogs(savedLogs);
+    }, []);
+
+    const activeMonthData = month === 1 ? MONTH_1 : month === 2 ? MONTH_2 : MONTH_3;
+    const rawDay = activeMonthData.days[selectedDayIndex];
+
+    // --- Energy Modulation Engine ---
+    const applyEnergyModulation = (day: WorkoutDay): WorkoutDay => {
+        if (energyLevel === "medium") return day;
+
+        const modulatedDay = { ...day };
+        modulatedDay.blocks = day.blocks.map((block: WorkoutBlock) => {
+            // LOW ENERGY MODS
+            if (energyLevel === "low") {
+                // Remove Sprint & Accessory blocks
+                if (block.type === "explosive" || block.type === "sport") return null;
+
+                return {
+                    ...block,
+                    rounds: Math.max(1, Math.floor((block.rounds || 1) * 0.7)),
+                    exercises: block.exercises.map((ex: WorkoutExercise) => ({
+                        ...ex,
+                        reps: typeof ex.reps === "number" ? Math.max(1, Math.floor(ex.reps * 0.8)) : ex.reps,
+                        duration_seconds: ex.duration_seconds ? Math.max(5, Math.floor(Number(ex.duration_seconds) * 0.8)) : ex.duration_seconds,
+                        rest_after: ex.rest_after ? `${Math.ceil(parseInt(ex.rest_after) * 1.3)}s` : ex.rest_after
+                    }))
+                } as WorkoutBlock;
+            }
+
+            // HIGH ENERGY MODS
+            if (energyLevel === "high") {
+                return {
+                    ...block,
+                    rounds: Math.min(6, (block.rounds || 1) + 1),
+                    exercises: block.exercises.map((ex: WorkoutExercise) => ({
+                        ...ex,
+                        reps: typeof ex.reps === "number" ? ex.reps + 2 : ex.reps,
+                        duration_seconds: ex.duration_seconds ? Number(ex.duration_seconds) + 10 : ex.duration_seconds,
+                        rest_after: ex.rest_after ? `${Math.max(15, Math.floor(parseInt(ex.rest_after) * 0.85))}s` : ex.rest_after
+                    }))
+                } as WorkoutBlock;
+            }
+            return block;
+        }).filter((b): b is WorkoutBlock => b !== null);
+
+        return modulatedDay;
+    };
+
+    const activeDay = applyEnergyModulation(rawDay);
+
+    const toggleExercise = (exerciseId: string) => {
+        const today = new Date().toISOString().split('T')[0];
+        const newLogs = [...workoutLogs];
+        const idx = newLogs.findIndex((l: WorkoutLog) => l.exerciseId === exerciseId && l.date === today);
+
+        if (idx >= 0) {
+            newLogs.splice(idx, 1);
+        } else {
+            newLogs.push({
+                exerciseId,
+                date: today,
+                completed: true,
+                month,
+                week: 1 // Default to week 1 for now
+            });
+            awardXP(15, "Athletics");
+        }
+
+        setWorkoutLogs(newLogs);
+        localStorage.setItem("emmanuel_workout_logs", JSON.stringify(newLogs));
+        window.dispatchEvent(new CustomEvent("sync:now"));
+    };
+
+    const isCompleted = (id: string) => {
+        const today = new Date().toISOString().split('T')[0];
+        return workoutLogs.some(l => l.exerciseId === id && l.date === today);
     };
 
     const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -85,12 +133,12 @@ export default function WorkoutPage() {
             {/* Header Section */}
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center gap-2 mb-3">
                         <Dumbbell className="w-5 h-5 text-gold" />
-                        <span className="font-mono text-[10px] text-gold uppercase tracking-[0.2em]">Phase 8: Warrior Forge</span>
+                        <span className="font-mono text-[10px] text-gold uppercase tracking-[0.3em]">Warrior Forge Curriculum</span>
                     </div>
-                    <h1 className="font-bebas text-5xl text-gold tracking-tight lowercase">Adaptive Training</h1>
-                    <p className="font-mono text-xs text-text-dim mt-1">Unified Block Architecture · v2.0</p>
+                    <h1 className="font-bebas text-5xl md:text-6xl text-text tracking-tight">Active <span className="text-gold">Training</span></h1>
+                    <p className="font-mono text-[10px] text-text-dim mt-2 tracking-widest uppercase opacity-60">Unified Adaptive Architecture • v2.0</p>
                 </div>
 
                 <div className="flex flex-col items-end gap-3">
@@ -132,22 +180,22 @@ export default function WorkoutPage() {
             </header>
 
             {/* Day Selection Bar */}
-            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
+            <div className="flex gap-3 overflow-x-auto no-scrollbar pb-4 -mx-4 px-4 md:mx-0 md:px-0">
                 {activeMonthData.days.map((day, idx) => (
                     <button
                         key={day.day}
                         onClick={() => setSelectedDayIndex(idx)}
                         className={cn(
-                            "flex-shrink-0 w-24 p-3 rounded-2xl border transition-all flex flex-col items-center gap-1",
+                            "flex-shrink-0 w-24 p-4 rounded-3xl border transition-all flex flex-col items-center gap-2",
                             selectedDayIndex === idx
-                                ? "bg-gold/10 border-gold shadow-[0_0_15px_rgba(212,175,55,0.1)]"
-                                : "bg-bg-surface border-border hover:border-gold/30"
+                                ? "bg-gold/10 border-gold/40 shadow-lg shadow-gold/5"
+                                : "bg-bg-surface border-border hover:border-border-2"
                         )}
                     >
-                        <span className={cn("text-[10px] font-bold uppercase", selectedDayIndex === idx ? "text-gold" : "text-text-dim")}>
+                        <span className={cn("text-[10px] font-mono tracking-widest uppercase", selectedDayIndex === idx ? "text-gold font-bold" : "text-text-dim")}>
                             {days[idx]}
                         </span>
-                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: day.color }} />
+                        <div className="w-2 h-2 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.5)]" style={{ backgroundColor: day.color }} />
                     </button>
                 ))}
             </div>
@@ -206,8 +254,9 @@ export default function WorkoutPage() {
                                 <BlockView
                                     title="Joint Mobility + Activation"
                                     exercises={UNIVERSAL_COMPONENTS.warm_up.exercises}
-                                    completedExercises={completedExercises}
+                                    isCompleted={isCompleted}
                                     onToggle={toggleExercise}
+                                    onOpenTimer={openTimer}
                                 />
                             )}
 
@@ -215,10 +264,11 @@ export default function WorkoutPage() {
                                 <BlockView
                                     key={block.id}
                                     title={block.name}
-                                    rounds={getAdaptiveRounds(block.rounds || 0)}
+                                    rounds={block.rounds || 0}
                                     exercises={block.exercises}
-                                    completedExercises={completedExercises}
+                                    isCompleted={isCompleted}
                                     onToggle={toggleExercise}
+                                    onOpenTimer={openTimer}
                                     note={block.note}
                                 />
                             ))}
@@ -227,14 +277,23 @@ export default function WorkoutPage() {
                                 <BlockView
                                     title="Recovery + Flexibility"
                                     exercises={UNIVERSAL_COMPONENTS.cool_down.exercises}
-                                    completedExercises={completedExercises}
+                                    isCompleted={isCompleted}
                                     onToggle={toggleExercise}
+                                    onOpenTimer={openTimer}
                                 />
                             )}
                         </motion.div>
                     </AnimatePresence>
                 </div>
             </div>
+
+            {/* Global Timer Overlay */}
+            <WorkoutTimer
+                isOpen={timerState.isOpen}
+                onClose={() => setTimerState(prev => ({ ...prev, isOpen: false }))}
+                initialSeconds={timerState.seconds}
+                title={timerState.title}
+            />
         </div>
     );
 }
@@ -252,23 +311,23 @@ function ModuleButton({ label, icon, active, onClick, subLabel }: ModuleButtonPr
         <button
             onClick={onClick}
             className={cn(
-                "w-full p-4 rounded-3xl border transition-all text-left flex items-center gap-4 group",
+                "w-full p-5 rounded-[2rem] border transition-all text-left flex items-center gap-5 group",
                 active
-                    ? "bg-bg-surface border-gold/40 shadow-lg shadow-gold/5"
-                    : "bg-bg-surface/50 border-border opacity-60 grayscale hover:grayscale-0 hover:opacity-100"
+                    ? "bg-bg-surface border-gold/30 shadow-xl shadow-gold/5"
+                    : "bg-bg-surface/40 border-border/50 opacity-60 hover:opacity-100 hover:border-border-2"
             )}
         >
             <div className={cn(
-                "w-10 h-10 rounded-2xl flex items-center justify-center transition-all",
-                active ? "bg-gold text-bg-dark" : "bg-bg-elevated text-text-dim group-hover:text-gold"
+                "w-12 h-12 rounded-2xl flex items-center justify-center transition-all",
+                active ? "bg-gold text-bg-dark shadow-[0_0_15px_rgba(201,150,46,0.2)]" : "bg-bg-muted text-text-dim group-hover:text-gold"
             )}>
                 {icon}
             </div>
             <div className="flex-1 overflow-hidden">
-                <p className={cn("text-xs font-mono uppercase tracking-wider", active ? "text-gold font-bold" : "text-text-muted")}>{label}</p>
-                {subLabel && <p className="text-[9px] font-mono text-text-dim truncate lowercase tracking-tighter">{subLabel}</p>}
+                <p className={cn("text-[11px] font-mono uppercase tracking-[0.2em]", active ? "text-gold font-bold" : "text-text-muted opacity-60")}>{label}</p>
+                {subLabel && <p className="text-[10px] font-mono text-text-dim truncate mt-0.5 opacity-80">{subLabel}</p>}
             </div>
-            {active && <div className="w-1.5 h-1.5 rounded-full bg-gold shadow-[0_0_8px_rgba(212,175,55,1)]" />}
+            {active && <div className="w-2 h-2 rounded-full bg-gold shadow-[0_0_10px_rgba(201,150,46,0.8)]" />}
         </button>
     );
 }
@@ -276,25 +335,26 @@ function ModuleButton({ label, icon, active, onClick, subLabel }: ModuleButtonPr
 interface BlockViewProps {
     title: string;
     exercises: WorkoutExercise[];
-    completedExercises: Set<string>;
+    isCompleted: (id: string) => boolean;
     onToggle: (id: string) => void;
+    onOpenTimer: (seconds: number, title: string) => void;
     rounds?: number;
     type?: string;
     note?: string;
 }
 
-function BlockView({ title, exercises, completedExercises, onToggle, rounds = 0, note }: BlockViewProps) {
+function BlockView({ title, exercises, isCompleted, onToggle, onOpenTimer, rounds = 0, note }: BlockViewProps) {
     return (
-        <div className="bg-bg-surface border border-border rounded-[2.5rem] overflow-hidden">
-            <div className="p-6 border-b border-border/50 flex items-center justify-between">
-                <div>
-                    <h3 className="font-bebas text-2xl text-text tracking-wide">{title}</h3>
-                    {note && <p className="text-[10px] font-mono text-text-dim uppercase mt-1">{note}</p>}
+        <div className="bg-bg-surface border border-border rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+            <div className="p-8 border-b border-border/50 bg-bg-surface/50 flex items-center justify-between">
+                <div className="space-y-1">
+                    <h3 className="font-bebas text-3xl text-text tracking-wide">{title}</h3>
+                    {note && <p className="font-mono text-[9px] text-text-muted uppercase tracking-[0.15em] opacity-60">{note}</p>}
                 </div>
                 {rounds > 0 && (
-                    <div className="flex items-center gap-2 bg-gold/10 border border-gold/20 px-3 py-1.5 rounded-full">
-                        <Flame className="w-3.5 h-3.5 text-gold" />
-                        <span className="font-bebas text-xl text-gold">{rounds} <span className="text-[10px] font-mono uppercase tracking-widest ml-1">Rounds</span></span>
+                    <div className="flex items-center gap-2 bg-gold/5 border border-gold/20 px-4 py-2 rounded-2xl">
+                        <Flame className="w-4 h-4 text-gold" />
+                        <span className="font-bebas text-2xl text-gold">{rounds} <span className="text-[10px] font-mono uppercase tracking-widest ml-1 opacity-70">Rounds</span></span>
                     </div>
                 )}
             </div>
@@ -302,38 +362,48 @@ function BlockView({ title, exercises, completedExercises, onToggle, rounds = 0,
             <div className="divide-y divide-border/30">
                 {exercises.map((ex: WorkoutExercise, idx: number) => {
                     const id = ex.id || `gen-${title}-${idx}`;
-                    const isCompleted = completedExercises.has(id);
+                    const completed = isCompleted(id);
                     return (
-                        <div key={id} className="p-6 hover:bg-white/[0.01] transition-colors">
-                            <div className="flex items-start justify-between gap-4">
-                                <div className="space-y-1 flex-1">
-                                    <h4 className={cn("font-medium transition-all", isCompleted ? "text-text-dim line-through" : "text-text")}>
-                                        {ex.name}
-                                    </h4>
-                                    <div className="flex gap-4 items-center">
-                                        {ex.sets && <span className="text-[10px] font-mono text-gold bg-gold/5 px-2 py-0.5 rounded uppercase tracking-tighter">Sets: {ex.sets}</span>}
-                                        {ex.reps && <span className="text-[10px] font-mono text-text-dim uppercase tracking-tighter">Reps: {ex.reps}</span>}
-                                        {ex.duration && <span className="text-[10px] font-mono text-text-dim uppercase tracking-tighter">Target: {ex.duration}</span>}
-                                        {ex.duration_seconds && <span className="text-[10px] font-mono text-text-dim uppercase tracking-tighter">{ex.duration_seconds}s</span>}
+                        <div key={id} className="p-8 hover:bg-white/[0.01] transition-colors group/ex">
+                            <div className="flex items-start justify-between gap-6">
+                                <div className="space-y-4 flex-1">
+                                    <div className="space-y-1">
+                                        <h4 className={cn("text-lg font-medium transition-all", completed ? "text-text-dim line-through" : "text-text")}>
+                                            {ex.name}
+                                        </h4>
+                                        <div className="flex flex-wrap gap-4 items-center">
+                                            {ex.sets && <span className="text-[10px] font-mono text-gold bg-gold/5 px-2 py-0.5 rounded border border-gold/10 uppercase tracking-tighter">Sets: {ex.sets}</span>}
+                                            {ex.reps && <span className="text-[10px] font-mono text-text-dim uppercase tracking-tighter">Reps: {ex.reps}</span>}
+                                            {ex.duration && <span className="text-[10px] font-mono text-text-dim uppercase tracking-tighter">Target: {ex.duration}</span>}
+                                            {(ex.duration_seconds) && (
+                                                <button
+                                                    onClick={() => onOpenTimer(Number(ex.duration_seconds), ex.name)}
+                                                    className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-gold/5 border border-gold/20 text-gold text-[10px] font-mono hover:bg-gold/10 transition-colors"
+                                                >
+                                                    <Clock className="w-3.5 h-3.5" />
+                                                    {ex.duration_seconds}s
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
-                                    <p className="text-xs text-text-muted leading-relaxed mt-2 opacity-80">{ex.how}</p>
+                                    <p className="text-sm text-text-muted leading-relaxed opacity-70 group-hover/ex:opacity-90 transition-opacity">{ex.how}</p>
                                     {ex.tip && (
-                                        <div className="flex items-center gap-2 mt-3 p-2 bg-blue-500/5 rounded-lg border border-blue-500/10">
-                                            <Info className="w-3 h-3 text-blue-400" />
-                                            <p className="text-[10px] text-blue-400/80 italic font-mono lowercase">{ex.tip}</p>
+                                        <div className="flex items-start gap-3 p-3 bg-blue-500/5 rounded-2xl border border-blue-500/10">
+                                            <Info className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
+                                            <p className="text-xs text-blue-400/80 italic font-medium leading-tight">{ex.tip}</p>
                                         </div>
                                     )}
                                 </div>
                                 <button
                                     onClick={() => onToggle(id)}
                                     className={cn(
-                                        "w-12 h-12 rounded-2xl border transition-all flex items-center justify-center shrink-0",
-                                        isCompleted
-                                            ? "bg-gold border-gold text-bg-dark shadow-[0_0_15px_rgba(212,175,55,0.3)]"
-                                            : "border-border hover:border-gold/50 text-text-dim"
+                                        "w-14 h-14 rounded-3xl border transition-all flex items-center justify-center shrink-0 active:scale-90",
+                                        completed
+                                            ? "bg-gold border-gold text-bg-dark shadow-lg shadow-gold/20"
+                                            : "bg-bg-elevated/50 border-border hover:border-gold/30 text-text-dim"
                                     )}
                                 >
-                                    {isCompleted ? <CheckCircle2 className="w-6 h-6" /> : <Plus className="w-5 h-5" />}
+                                    {completed ? <CheckCircle2 className="w-7 h-7" /> : <Plus className="w-6 h-6" />}
                                 </button>
                             </div>
                         </div>

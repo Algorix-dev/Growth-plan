@@ -196,35 +196,35 @@ export default function OverviewPage() {
                     EP
                 </div>
 
-                <div className="relative z-10 max-w-7xl mx-auto px-4">
-                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
-                        <div className="space-y-6 flex-1">
-                            <div className="flex items-center gap-4">
-                                <div className="space-y-1">
-                                    <h2 className="text-4xl md:text-6xl font-bebas tracking-wider text-white">
+                <div className="relative z-10 max-w-7xl mx-auto">
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-12">
+                        <div className="space-y-8 flex-1">
+                            <div className="flex items-center gap-6">
+                                <div className="space-y-2">
+                                    <h2 className="text-5xl md:text-7xl font-bebas tracking-tight text-white leading-none">
                                         Emmanuel <span className="text-gold">OS</span>
                                     </h2>
                                     <div className="flex items-center gap-3">
-                                        <p className="font-mono text-[10px] md:text-xs uppercase tracking-[0.3em] text-gold/60">
-                                            System v4.0 • Deep Integration
+                                        <p className="font-mono text-[10px] md:text-sm uppercase tracking-[0.4em] text-gold/60">
+                                            System Nexus • Integration v4.0
                                         </p>
-                                        <span className="text-gold/40">|</span>
-                                        <span className="font-bebas text-lg text-gold/90 tracking-widest bg-gold/5 px-2 py-0.5 rounded border border-gold/10">
-                                            {identity} ACTIVE
+                                        <div className="h-1 w-1 rounded-full bg-gold/40" />
+                                        <span className="font-bebas text-xl text-gold tracking-widest bg-gold/5 px-3 py-1 rounded-2xl border border-gold/10 shadow-lg shadow-gold/5">
+                                            {identity} STATE
                                         </span>
                                     </div>
                                 </div>
-                                <div className="h-px bg-gradient-to-r from-gold/50 to-transparent flex-1 hidden md:block" />
+                                <div className="h-px bg-gradient-to-r from-gold/30 via-gold/10 to-transparent flex-1 hidden xl:block" />
                             </div>
 
-                            <div className="flex flex-wrap items-center gap-6">
-                                <div className="space-y-2">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-2 h-2 rounded-full bg-green animate-pulse" />
-                                        <span className="font-bebas text-2xl tracking-wide">Active Growth Plan</span>
+                            <div className="flex flex-wrap items-center gap-8">
+                                <div className="space-y-3">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-2.5 h-2.5 rounded-full bg-green animate-pulse shadow-[0_0_12px_rgba(74,222,128,0.5)]" />
+                                        <span className="font-bebas text-3xl tracking-widest uppercase">Active Growth Phase</span>
                                     </div>
-                                    <p className="font-mono text-[10px] text-text-dim uppercase tracking-widest">
-                                        Week {weekCount} Status: Operational
+                                    <p className="font-mono text-[11px] text-text-dim uppercase tracking-widest opacity-60">
+                                        Plan Week {weekCount} • Status: Peak Operational Efficiency
                                     </p>
                                 </div>
                             </div>
@@ -233,11 +233,11 @@ export default function OverviewPage() {
                         <div className="flex items-center gap-4">
                             <button
                                 onClick={resetPlan}
-                                className="group flex items-center gap-2 px-4 py-2 bg-bg-surface border border-border rounded-lg hover:border-gold/40 hover:bg-gold/5 transition-all"
+                                className="group flex items-center gap-3 px-5 py-3 bg-bg-surface border border-border rounded-2xl hover:border-gold/30 hover:bg-gold/5 transition-all shadow-sm active:scale-95"
                                 title="Reset Plan"
                             >
-                                <RotateCcw className="w-4 h-4 text-text-dim group-hover:text-gold transition-colors" />
-                                <span className="font-mono text-[10px] uppercase tracking-widest text-text-dim group-hover:text-gold">Restart</span>
+                                <RotateCcw className="w-4 h-4 text-text-muted group-hover:text-gold transition-colors" />
+                                <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-muted group-hover:text-gold font-bold">Restart System</span>
                             </button>
                         </div>
                     </div>
@@ -248,10 +248,10 @@ export default function OverviewPage() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 }}
-                        className="text-6xl md:text-8xl font-bebas leading-[0.9] tracking-tight max-w-2xl"
+                        className="text-7xl md:text-9xl font-bebas leading-[0.85] tracking-tight max-w-3xl"
                     >
-                        Build in the <span className="text-gold">dark.</span><br />
-                        Shine in the <span className="text-gold">light.</span>
+                        Build in <span className="text-gold">silence.</span><br />
+                        Let <span className="text-gold">Success</span> noise.
                     </motion.h1>
 
                     {/* Daily rotating quote */}
@@ -259,30 +259,32 @@ export default function OverviewPage() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.2 }}
-                        className="font-serif italic text-base text-text-muted max-w-xl leading-relaxed"
+                        className="font-serif italic text-lg md:text-xl text-text-muted max-w-2xl leading-relaxed opacity-90"
                     >
                         &quot;{quote}&quot;
                     </motion.p>
 
                     {/* Birthday Countdown */}
                     <motion.div
-                        initial={{ opacity: 0, y: 6 }}
+                        initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.25 }}
-                        className="flex items-center gap-2 flex-wrap"
+                        className="flex items-center gap-4 flex-wrap bg-bg-surface/30 backdrop-blur-md border border-border/50 p-4 rounded-[2rem] w-fit"
                     >
-                        <Clock className="w-3 h-3 text-gold shrink-0" />
-                        <span className="font-mono text-[9px] uppercase tracking-widest text-text-dim">18th Birthday:</span>
+                        <Clock className="w-4 h-4 text-gold shrink-0" />
+                        <span className="font-mono text-[11px] uppercase tracking-widest text-text-dim">Age 18 Ascension:</span>
                         {[
-                            { val: countdown.days, label: "d" },
-                            { val: countdown.hours, label: "h" },
-                            { val: countdown.mins, label: "m" },
+                            { val: countdown.days, label: "DAYS" },
+                            { val: countdown.hours, label: "HRS" },
+                            { val: countdown.mins, label: "MINS" },
                         ].map(({ val, label }) => (
-                            <span key={label} className="font-bebas text-xl text-gold leading-none">
-                                {val}<span className="font-mono text-[8px] text-text-dim ml-0.5">{label}</span>
-                            </span>
+                            <div key={label} className="flex flex-col items-center">
+                                <span className="font-bebas text-3xl text-gold leading-none">
+                                    {val}
+                                </span>
+                                <span className="font-mono text-[8px] text-text-dim tracking-tighter">{label}</span>
+                            </div>
                         ))}
-                        <span className="font-mono text-[9px] text-text-dim tracking-widest">remaining</span>
                     </motion.div>
 
                     <div className="flex flex-wrap gap-2">
@@ -353,7 +355,7 @@ export default function OverviewPage() {
                             window.dispatchEvent(new CustomEvent("sync:now"));
                         }
                     },
-                    { label: "Goals Progress", value: stats.goals, icon: Target, color: "text-green", action: null },
+                    { label: "Execution Rank", value: "ELITE", icon: Target, color: "text-green", action: null },
                 ].map((stat, i) => (
                     <motion.div
                         key={stat.label}
@@ -362,31 +364,36 @@ export default function OverviewPage() {
                         transition={{ delay: 0.3 + i * 0.05 }}
                         onClick={stat.action || undefined}
                         className={cn(
-                            "bg-bg-surface border border-border p-4 rounded-xl flex flex-col justify-between group hover:border-border-2 transition-all cursor-default",
-                            stat.action && "cursor-pointer hover:bg-bg-elevated/50 active:scale-95"
+                            "bg-bg-surface border border-border p-6 rounded-[2rem] flex flex-col justify-between group hover:border-gold/30 hover:bg-bg-surface shadow-sm transition-all cursor-default relative overflow-hidden",
+                            stat.action && "cursor-pointer hover:shadow-lg hover:shadow-gold/5 active:scale-95"
                         )}
                     >
-                        <div className="flex items-center justify-between mb-2">
-                            <stat.icon className={cn("w-4 h-4", stat.color)} />
-                            <span className="font-bebas text-2xl group-hover:scale-110 transition-transform">{stat.value}</span>
+                        <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
+                            <stat.icon className="w-16 h-16" />
                         </div>
-                        <p className="font-mono text-[9px] uppercase tracking-wider text-text-dim flex items-center justify-between">
-                            {stat.label}
-                            {stat.action && <span className="text-[8px] text-gold/40 tracking-tighter ml-1">CYCLE</span>}
-                        </p>
+                        <div className="relative z-10">
+                            <div className="flex items-center justify-between mb-4">
+                                <stat.icon className={cn("w-5 h-5", stat.color)} />
+                                <span className="font-bebas text-3xl transition-transform group-hover:scale-105">{stat.value}</span>
+                            </div>
+                            <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-text-dim flex items-center justify-between opacity-60">
+                                {stat.label}
+                                {stat.action && <span className="text-[9px] text-gold font-bold tracking-tighter bg-gold/10 px-1.5 rounded-sm">ADAPTIVE</span>}
+                            </p>
+                        </div>
                     </motion.div>
                 ))}
             </section>
 
             {/* Pillars Grid - Hidden on Mobile to prioritize action */}
             <section className="hidden md:block">
-                <div className="flex items-center gap-4 mb-8">
-                    <h2 className="text-2xl font-bebas tracking-wider text-white">The 6 Pillars</h2>
-                    <div className="h-px bg-border flex-1" />
-                    <span className="font-mono text-[10px] uppercase text-gold tracking-widest">XP Investment Chart</span>
+                <div className="flex items-center gap-6 mb-12">
+                    <h2 className="text-4xl font-bebas tracking-widest text-text">The <span className="text-gold">Nexus</span> Pillars</h2>
+                    <div className="h-px bg-border/50 flex-1" />
+                    <span className="font-mono text-[10px] uppercase text-gold/60 tracking-[0.3em]">Mastery Distribution</span>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {[
                         { title: "Technical Power", subtitle: "Architecture & Logic", color: "purple" },
                         { title: "Mathematical Maturity", subtitle: "Problem Solving", color: "blue" },
@@ -401,19 +408,27 @@ export default function OverviewPage() {
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: 0.5 + i * 0.05 }}
                             className={cn(
-                                "bg-bg-surface border border-border p-6 rounded-xl hover:-translate-y-1 transition-all group",
-                                `border-t-2 border-t-${pillar.color}`
+                                "bg-bg-surface border border-border p-8 rounded-[2.5rem] hover:shadow-xl hover:shadow-gold/5 transition-all group relative overflow-hidden",
+                                `border-t-4 border-t-${pillar.color}`
                             )}
                         >
-                            <h3 className="text-xl font-bebas mb-1 group-hover:text-gold transition-colors">{pillar.title}</h3>
-                            <p className="font-serif italic text-sm text-text-muted mb-4">{pillar.subtitle}</p>
-                            <div className="h-1 bg-bg-muted rounded-full overflow-hidden">
-                                <motion.div
-                                    initial={{ width: 0 }}
-                                    animate={{ width: `${pillarProgress[i]}%` }}
-                                    transition={{ duration: 1, delay: 1 }}
-                                    className={cn("h-full", `bg-${pillar.color}`)}
-                                />
+                            <div className="relative z-10">
+                                <h3 className="text-3xl font-bebas mb-2 group-hover:text-gold transition-colors tracking-wide">{pillar.title}</h3>
+                                <p className="font-serif italic text-base text-text-muted mb-6 opacity-80">{pillar.subtitle}</p>
+                                <div className="space-y-2">
+                                    <div className="flex justify-between items-end">
+                                        <span className="font-mono text-[9px] uppercase tracking-widest text-text-dim">XP Investment</span>
+                                        <span className="font-bebas text-xl text-gold">{Math.round(pillarProgress[i])}%</span>
+                                    </div>
+                                    <div className="h-2 bg-bg-muted/50 rounded-full overflow-hidden border border-border/30">
+                                        <motion.div
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${pillarProgress[i]}%` }}
+                                            transition={{ duration: 1.5, delay: 1, ease: "circOut" }}
+                                            className={cn("h-full shadow-[0_0_15px_rgba(255,255,255,0.1)]", `bg-${pillar.color}`)}
+                                        />
+                                    </div>
+                                </div>
                             </div>
                         </motion.div>
                     ))}
@@ -421,15 +436,23 @@ export default function OverviewPage() {
             </section>
 
             {/* Quote Block */}
-            <section className="bg-gold-dim border border-gold/20 p-12 rounded-2xl text-center relative overflow-hidden group">
-                <div className="absolute inset-0 bg-gold/5 blur-3xl rounded-full -translate-y-1/2 scale-150 group-hover:scale-110 transition-all duration-1000" />
-                <div className="relative z-10 space-y-4">
-                    <p className="font-serif italic text-2xl md:text-3xl text-gold-light max-w-2xl mx-auto leading-relaxed">
+            <section className="bg-bg-surface border border-border p-16 rounded-[3rem] text-center relative overflow-hidden group shadow-sm">
+                <div className="absolute inset-0 bg-gold/5 blur-[100px] rounded-full -translate-y-1/2 scale-150 group-hover:scale-110 transition-all duration-1000" />
+                <div className="relative z-10 space-y-8">
+                    <div className="flex justify-center">
+                        <Flame className="w-10 h-10 text-gold opacity-40 group-hover:scale-110 transition-transform" />
+                    </div>
+                    <p className="font-serif italic text-3xl md:text-5xl text-text-dim max-w-4xl mx-auto leading-[1.3] group-hover:text-text transition-colors">
                         &quot;They&apos;ll see the physique, the grades, the confidence, the presence. They&apos;ll never see the 3AM.&quot;
                     </p>
-                    <p className="font-mono text-[10px] tracking-[0.3em] uppercase text-gold/60">
-                        Emmanuel Peter · Forge in silence.
-                    </p>
+                    <div className="space-y-2">
+                        <p className="font-mono text-[11px] tracking-[0.5em] uppercase text-gold font-bold">
+                            Emmanuel Peter
+                        </p>
+                        <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-text-muted opacity-40">
+                            Forge in silence.
+                        </p>
+                    </div>
                 </div>
             </section>
         </div>

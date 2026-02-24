@@ -122,60 +122,63 @@ export default function HabitsPage() {
 
     return (
         <div className="space-y-8">
-            <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="space-y-4 flex-1">
-                    <div className="flex items-center gap-4">
-                        <h1 className="text-3xl font-bebas tracking-wider">Habit Tracker</h1>
-                        <div className="h-px bg-border flex-1" />
+            <header className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+                <div className="space-y-6 flex-1">
+                    <div>
+                        <div className="flex items-center gap-2 mb-3">
+                            <Award className="w-5 h-5 text-gold" />
+                            <span className="font-mono text-[10px] text-gold uppercase tracking-[0.3em] opacity-80">Behavioral Architecture</span>
+                        </div>
+                        <h1 className="text-5xl md:text-6xl font-bebas tracking-tight text-text">Habit <span className="text-gold">Tracker</span></h1>
                     </div>
-                    <div className="bg-bg-surface border border-border border-l-4 border-l-gold p-4 rounded-lg">
+                    <div className="bg-bg-surface border border-border border-l-4 border-l-gold p-6 rounded-[2rem] shadow-sm">
                         <p className="font-serif italic text-sm text-text-muted leading-relaxed">
-                            <strong>The rule:</strong> Every habit below is non-negotiable. Check it off each day you complete it.
+                            <strong>The Prime Directive:</strong> Every habit below is non-negotiable. Check it off each day you complete it.
                             Anything below 80% gets an audit in the journal. <span className="text-gold font-bold">No excuses — just data.</span>
                         </p>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-4 bg-bg-surface border border-border p-2 rounded-lg">
+                <div className="flex items-center gap-4 bg-bg-surface border border-border p-2 rounded-2xl shadow-sm self-start md:self-end mb-2">
                     <button
                         onClick={() => setWeek(w => Math.max(1, w - 1))}
-                        className="p-2 hover:bg-bg-elevated rounded transition-colors text-text-muted"
+                        className="p-3 hover:bg-bg-elevated rounded-xl transition-all active:scale-95 text-text-muted hover:text-gold"
                     >
-                        <ChevronLeft className="w-5 h-5" />
+                        <ChevronLeft className="w-6 h-6" />
                     </button>
-                    <div className="px-4 text-center min-w-[120px]">
-                        <p className="font-bebas text-xl uppercase">Week {week}</p>
-                        <p className="font-mono text-[9px] uppercase text-text-dim tracking-widest">{dateRange}</p>
+                    <div className="px-6 text-center min-w-[140px]">
+                        <p className="font-bebas text-2xl uppercase text-text">Week {week}</p>
+                        <p className="font-mono text-[10px] uppercase text-text-dim tracking-widest opacity-60">{dateRange}</p>
                     </div>
                     <button
                         onClick={() => setWeek(w => w + 1)}
-                        className="p-2 hover:bg-bg-elevated rounded transition-colors text-text-muted"
+                        className="p-3 hover:bg-bg-elevated rounded-xl transition-all active:scale-95 text-text-muted hover:text-gold"
                     >
-                        <ChevronRight className="w-5 h-5" />
+                        <ChevronRight className="w-6 h-6" />
                     </button>
                 </div>
             </header>
 
-            <section className="bg-bg-surface border border-border rounded-xl overflow-hidden shadow-2xl">
+            <section className="bg-bg-surface border border-border rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                 {/* Desktop Table View */}
                 <div className="hidden md:block overflow-x-auto">
                     <table className="w-full border-collapse">
                         <thead>
-                            <tr className="bg-bg-elevated/50">
-                                <th className="p-4 text-left font-mono text-[10px] uppercase tracking-widest text-text-dim border-b border-border min-w-[200px]">Habit</th>
+                            <tr className="bg-bg-surface/50">
+                                <th className="p-6 text-left font-mono text-[10px] uppercase tracking-[0.2em] text-text-muted border-b border-border/50 min-w-[200px]">Strategic Habit</th>
                                 {days.map((day, idx) => {
                                     const dateObj = weekDates[idx];
                                     return (
-                                        <th key={day} className="p-4 text-center border-b border-border w-16">
-                                            <p className="font-bebas text-sm tracking-widest text-text-muted">{day}</p>
-                                            <p className="font-mono text-[8px] text-text-dim opacity-60">
+                                        <th key={day} className="p-6 text-center border-b border-border/50 w-20">
+                                            <p className="font-bebas text-base tracking-widest text-text-dim">{day}</p>
+                                            <p className="font-mono text-[9px] text-text-muted/40 uppercase tracking-tighter">
                                                 {dateObj ? dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '-'}
                                             </p>
                                         </th>
                                     );
                                 })}
-                                <th className="p-4 text-center font-bebas text-sm tracking-widest text-gold border-b border-border w-16">🔥</th>
-                                <th className="p-4 text-center font-bebas text-sm tracking-widest text-text-dim border-b border-border w-16">%</th>
+                                <th className="p-6 text-center font-bebas text-lg tracking-widest text-gold border-b border-border/50 w-20">🔥</th>
+                                <th className="p-6 text-center font-bebas text-lg tracking-widest text-text-dim border-b border-border/50 w-20">%</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -194,10 +197,10 @@ export default function HabitsPage() {
                                 const isBad = pct < 50 && count > 0;
 
                                 return (
-                                    <tr key={habit.label} className="group hover:bg-bg-elevated/30 transition-colors">
-                                        <td className="p-4 border-b border-border/50">
-                                            <p className="font-mono text-xs font-semibold uppercase">{habit.label}</p>
-                                            <p className="font-mono text-[9px] text-text-dim uppercase tracking-wider">{habit.category}</p>
+                                    <tr key={habit.label} className="group hover:bg-white/[0.01] transition-colors">
+                                        <td className="p-6 border-b border-border/50">
+                                            <p className="font-mono text-sm font-bold uppercase tracking-tight text-text">{habit.label}</p>
+                                            <p className="font-mono text-[10px] text-text-dim uppercase tracking-[0.1em] mt-0.5 opacity-60">{habit.category}</p>
                                         </td>
                                         {days.map((day, dIdx) => {
                                             const dateObj = weekDates[dIdx];
@@ -211,24 +214,27 @@ export default function HabitsPage() {
                                             }
 
                                             return (
-                                                <td key={day} className="p-4 text-center border-b border-border/50">
-                                                    <Checkbox
-                                                        checked={isChecked}
-                                                        disabled={!dateKey}
-                                                        onCheckedChange={() => dateObj && toggleHabit(habit.label, dateObj)}
-                                                        className={cn(
-                                                            "w-5 h-5 transition-transform active:scale-95",
-                                                            habit.color.split(' ')[0]
-                                                        )}
-                                                    />
+                                                <td key={day} className="p-6 text-center border-b border-border/50">
+                                                    <div className="flex justify-center">
+                                                        <Checkbox
+                                                            checked={isChecked}
+                                                            disabled={!dateKey}
+                                                            onCheckedChange={() => dateObj && toggleHabit(habit.label, dateObj)}
+                                                            className={cn(
+                                                                "w-6 h-6 rounded-lg border-2 transition-all active:scale-90",
+                                                                habit.color.split(' ')[0],
+                                                                isChecked ? "shadow-lg shadow-current/20" : "border-border-2 opacity-40 hover:opacity-100"
+                                                            )}
+                                                        />
+                                                    </div>
                                                 </td>
                                             );
                                         })}
-                                        <td className={cn("p-4 text-center border-b border-border/50 font-bebas text-lg", isGreat ? "text-green" : isBad ? "text-red" : "text-text")}>
+                                        <td className={cn("p-6 text-center border-b border-border/50 font-bebas text-2xl", isGreat ? "text-green" : isBad ? "text-red" : "text-text")}>
                                             {count}
                                         </td>
-                                        <td className={cn("p-4 text-center border-b border-border/50 font-mono text-[10px]", isGreat ? "text-green" : isBad ? "text-red" : "text-text-dim")}>
-                                            {pct}%
+                                        <td className={cn("p-6 text-center border-b border-border/50 font-bebas text-2xl", isGreat ? "text-green" : isBad ? "text-red" : "text-text-muted")}>
+                                            {pct}<span className="text-[10px] font-mono ml-0.5 opacity-60">%</span>
                                         </td>
                                     </tr>
                                 );
@@ -252,19 +258,19 @@ export default function HabitsPage() {
                         const pct = Math.round((count / 7) * 100);
 
                         return (
-                            <div key={habit.label} className="p-4 space-y-4 bg-bg-surface">
+                            <div key={habit.label} className="p-6 space-y-6 bg-bg-surface">
                                 <div className="flex justify-between items-start">
                                     <div>
-                                        <h3 className="font-mono text-[10px] font-bold uppercase tracking-tight">{habit.label}</h3>
-                                        <p className="font-mono text-[8px] text-text-dim uppercase tracking-widest">{habit.category}</p>
+                                        <h3 className="font-mono text-[12px] font-bold uppercase tracking-tight text-text">{habit.label}</h3>
+                                        <p className="font-mono text-[9px] text-text-dim uppercase tracking-[0.1em] mt-0.5 opacity-60">{habit.category}</p>
                                     </div>
                                     <div className="text-right">
-                                        <span className={cn("font-bebas text-lg", pct >= 80 ? "text-green" : "text-gold")}>{pct}%</span>
-                                        <p className="font-mono text-[8px] text-text-dim uppercase">Success</p>
+                                        <span className={cn("font-bebas text-3xl", pct >= 80 ? "text-green" : pct >= 50 ? "text-gold" : "text-text-muted")}>{pct}%</span>
+                                        <p className="font-mono text-[8px] text-text-dim uppercase tracking-widest opacity-60">Success Rate</p>
                                     </div>
                                 </div>
 
-                                <div className="flex justify-between items-center gap-1">
+                                <div className="flex justify-between items-center gap-2 overflow-x-auto no-scrollbar pb-1">
                                     {days.map((day, dIdx) => {
                                         const dateObj = weekDates[dIdx];
                                         const dateKey = dateObj ? dateObj.toISOString().split('T')[0] : null;
@@ -282,15 +288,15 @@ export default function HabitsPage() {
                                                 disabled={!dateKey}
                                                 onClick={() => dateObj && toggleHabit(habit.label, dateObj)}
                                                 className={cn(
-                                                    "flex-1 aspect-square rounded-lg border-2 flex flex-col items-center justify-center transition-all active:scale-90",
+                                                    "flex-1 min-w-[40px] aspect-square rounded-2xl border flex flex-col items-center justify-center transition-all active:scale-90",
                                                     isChecked
-                                                        ? `${habit.color.split(' ')[0]} bg-current/10 border-current`
-                                                        : "border-border-2 bg-bg-elevated/30 text-text-dim",
-                                                    !dateKey && "opacity-20"
+                                                        ? `${habit.color.split(' ')[0]} bg-current/10 border-current shadow-lg shadow-current/5`
+                                                        : "border-border-2 bg-bg-surface text-text-dim opacity-40",
+                                                    !dateKey && "opacity-10"
                                                 )}
                                             >
-                                                <span className="font-bebas text-[10px]">{day[0]}</span>
-                                                <span className="font-mono text-[7px] opacity-60">
+                                                <span className="font-bebas text-xs">{day[0]}</span>
+                                                <span className="font-mono text-[8px] opacity-60 mt-0.5">
                                                     {dateObj ? dateObj.getDate() : ''}
                                                 </span>
                                             </button>
@@ -348,12 +354,14 @@ export default function HabitsPage() {
                         { label: "Best Habit", val: bestHabit ? `${bestHabit.label} (${bestHabit.pct}%)` : "N/A", icon: Flame, color: "text-red" },
                         { label: "Critical Gaps", val: worstHabit ? `${worstHabit.label} (${worstHabit.pct}%)` : "N/A", icon: AlertTriangle, color: "text-orange" },
                     ].map(stat => (
-                        <div key={stat.label} className="bg-bg-surface border border-border p-6 rounded-xl space-y-2">
+                        <div key={stat.label} className="bg-bg-surface border border-border p-8 rounded-[2rem] space-y-4 shadow-sm hover:shadow-md transition-shadow group">
                             <div className="flex items-center justify-between">
-                                <stat.icon className={cn("w-5 h-5", stat.color)} />
-                                <span className="font-bebas text-2xl">{stat.val}</span>
+                                <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center bg-bg-surface border border-border group-hover:border-gold/30 transition-colors")}>
+                                    <stat.icon className={cn("w-6 h-6", stat.color)} />
+                                </div>
+                                <span className="font-bebas text-4xl text-text">{stat.val}</span>
                             </div>
-                            <p className="font-mono text-[10px] uppercase tracking-widest text-text-dim">{stat.label}</p>
+                            <p className="font-mono text-[10px] uppercase tracking-widest text-text-dim opacity-60">{stat.label}</p>
                         </div>
                     ));
                 })()}

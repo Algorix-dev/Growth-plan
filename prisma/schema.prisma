@@ -38,6 +38,7 @@ model User {
   performanceLogs DailyPerformance[]
   workoutLogs   WorkoutLog[]
   groomingLogs  GroomingLog[]
+  martialArtLogs MartialArtLog[]
 }
 
 model Course {
@@ -327,4 +328,16 @@ model GroomingLog {
   user User @relation(fields: [userId], references: [id])
 
   @@unique([userId, date, item])
+}
+
+model MartialArtLog {
+  id          String   @id @default(cuid())
+  userId      String
+  date        DateTime @db.Date
+  techniqueId String
+  completed   Boolean  @default(false)
+  
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, date, techniqueId])
 }
