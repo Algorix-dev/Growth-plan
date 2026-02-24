@@ -337,24 +337,43 @@ export default function OverviewPage() {
             {/* Stats Grid */}
             <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 {[
-                    { label: "Habits Today", value: stats.habits, icon: CheckCircle2, color: "text-gold" },
-                    { label: "Burnout Risk", value: burnout.indicator, icon: Activity, color: burnout.indicator === 'Red' ? "text-red" : "text-green" },
-                    { label: "Identity State", value: identity, icon: Zap, color: "text-gold" },
-                    { label: "Energy Level", value: energy.toUpperCase(), icon: Flame, color: "text-red" },
-                    { label: "Goals Progress", value: stats.goals, icon: Target, color: "text-green" },
+                    { label: "Habits Today", value: stats.habits, icon: CheckCircle2, color: "text-gold", action: null },
+                    { label: "Burnout Risk", value: burnout.indicator, icon: Activity, color: burnout.indicator === 'Red' ? "text-red" : "text-green", action: null },
+                    { label: "Identity State", value: identity, icon: Zap, color: "text-gold", action: null },
+                    {
+                        label: "Energy Level",
+                        value: energy.toUpperCase(),
+                        icon: Flame,
+                        color: energy === 'high' ? "text-red" : energy === 'low' ? "text-blue" : "text-gold",
+                        action: () => {
+                            const levels = ['low', 'medium', 'high'];
+                            const next = levels[(levels.indexOf(energy) + 1) % levels.length];
+                            setEnergy(next);
+                            localStorage.setItem("emmanuel_energy_level", next);
+                            window.dispatchEvent(new CustomEvent("sync:now"));
+                        }
+                    },
+                    { label: "Goals Progress", value: stats.goals, icon: Target, color: "text-green", action: null },
                 ].map((stat, i) => (
                     <motion.div
                         key={stat.label}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3 + i * 0.05 }}
-                        className="bg-bg-surface border border-border p-4 rounded-xl flex flex-col justify-between group hover:border-border-2 transition-all cursor-default"
+                        onClick={stat.action || undefined}
+                        className={cn(
+                            "bg-bg-surface border border-border p-4 rounded-xl flex flex-col justify-between group hover:border-border-2 transition-all cursor-default",
+                            stat.action && "cursor-pointer hover:bg-bg-elevated/50 active:scale-95"
+                        )}
                     >
                         <div className="flex items-center justify-between mb-2">
                             <stat.icon className={cn("w-4 h-4", stat.color)} />
                             <span className="font-bebas text-2xl group-hover:scale-110 transition-transform">{stat.value}</span>
                         </div>
-                        <p className="font-mono text-[9px] uppercase tracking-wider text-text-dim">{stat.label}</p>
+                        <p className="font-mono text-[9px] uppercase tracking-wider text-text-dim flex items-center justify-between">
+                            {stat.label}
+                            {stat.action && <span className="text-[8px] text-gold/40 tracking-tighter ml-1">CYCLE</span>}
+                        </p>
                     </motion.div>
                 ))}
             </section>

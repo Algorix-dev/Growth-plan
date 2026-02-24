@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
 export async function POST(req: NextRequest) {
-    const { userId, focus, dailyJournal, trades, xp, energy, pillarXP } = await req.json();
+    const { userId, focus, dailyJournal, trades, xp, energy, pillarXP, habitLogs } = await req.json();
 
     if (!userId) {
         return NextResponse.json({ error: "Missing userId" }, { status: 400 });
@@ -15,6 +15,34 @@ export async function POST(req: NextRequest) {
             data: { xp: { set: xp || 0 } },
             select: { xp: true, level: true }
         });
+
+        // --- Sync Habits (Upsert by Date/HabitId) ---
+        if (habitLogs && Array.isArray(habitLogs)) {
+            for (const h of habitLogs) {
+                // Key format is "HabitLabel-YYYY-MM-DD" or just "HabitLabel" if we're syncing the state object
+                // Let's assume habitLogs is an array of { id, date, completed, week }
+                await prisma.habitLog.upsert({
+                    where: {
+                        userId_habitId_date: {
+                            userId,
+                            habitId: h.habitId,
+                            date: new Date(h.date)
+                        }
+                    },
+                    update: {
+                        completed: h.completed,
+                        week: h.week || 1
+                    },
+                    create: {
+                        userId,
+                        habitId: h.habitId,
+                        date: new Date(h.date),
+                        completed: h.completed,
+                        week: h.week || 1
+                    }
+                });
+            }
+        }
 
         // --- Sync Focus Sessions (Upsert by Date/Duration/Task) ---
         // We'll simplify: just create sessions that don't exist yet
@@ -125,7 +153,10 @@ export async function POST(req: NextRequest) {
         }
 
         // --- Return Full State for Syncing ---
-        // const habitsRes = await prisma.habitLog.findMany({ where: { userId } });
+        const habitsRes = await prisma.habitLog.findMany({
+            where: { userId },
+            orderBy: { date: 'desc' }
+        });
         const focusRes = await prisma.focusSession.findMany({ where: { userId }, orderBy: { date: 'desc' } });
         const tradesRes = await prisma.trade.findMany({ where: { userId }, orderBy: { createdAt: 'desc' } });
         const journalRes = await prisma.journalEntry.findMany({ where: { userId }, orderBy: { date: 'desc' } });
@@ -150,6 +181,12 @@ export async function POST(req: NextRequest) {
                 level: user.level,
                 energy: energyRes?.level || 'medium',
                 pillars: pillarsRes,
+                habits: habitsRes.map(h => ({
+                    habitId: h.habitId,
+                    date: h.date.toISOString().split('T')[0],
+                    completed: h.completed,
+                    week: h.week
+                })),
                 focus: focusRes.map(s => ({
                     id: s.id,
                     duration: s.duration,

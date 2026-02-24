@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     Sword,
     Flame,
@@ -22,28 +22,55 @@ const CURRICULUM = [
         month: 1,
         title: "Fundamentals",
         focus: "Stance, Movement & Basic Strikes",
-        techniques: ["Orthodox Stance", "Footwork (Step/Circle)", "Jab (1)", "Cross (2)", "The Muay Thai Teep", "Basic Roundhouse Kick (Pivot)"],
+        techniques: [
+            { id: "m1t1", title: "Orthodox Stance" },
+            { id: "m1t2", title: "Footwork (Step/Circle)" },
+            { id: "m1t3", title: "Jab (1)" },
+            { id: "m1t4", title: "Cross (2)" },
+            { id: "m1t5", title: "Jab-Cross (1-2)" },
+            { id: "m1t6", title: "Muay Thai Roundhouse Kick (Shin Contact)" },
+            { id: "m1t7", title: "Teep (Push Kick)" }
+        ],
         daily_drill: "1-2 Combination (200 reps)"
     },
     {
         month: 2,
         title: "Building Flow",
         focus: "Combinations & Basic Defense",
-        techniques: ["Jab-Cross-Low Kick", "Teep-Cross-Kick", "Left Hook (3)", "Parry & Block", "Basic Check (Shin)", "Clinch Entry"],
+        techniques: [
+            { id: "m2t1", title: "Jab-Cross-Low Kick" },
+            { id: "m2t2", title: "Teep-Cross-Kick" },
+            { id: "m2t3", title: "Jab-Cross-Left Hook (1-2-3)" },
+            { id: "m2t4", title: "The 4 Pillars of Defence (Parry/Bob/Check)" },
+            { id: "m2t5", title: "Clinch Entry & Posture Control" },
+            { id: "m2t6", title: "Knee Strikes from Clinch" }
+        ],
         daily_drill: "Check-Counter Drill (100 reps)"
     },
     {
         month: 3,
         title: "Warrior Physique",
         focus: "Advanced Strikes & Explosiveness",
-        techniques: ["Head Kicks", "Speed Elbows", "Diagonal Elbows (12-6)", "Knees from Clinch", "Angled Movement", "Faked Teep"],
+        techniques: [
+            { id: "m3t1", title: "High Roundhouse Kick (Shoulder Height)" },
+            { id: "m3t2", title: "Horizontal Elbow Strikes" },
+            { id: "m3t3", title: "Diagonal Elbow (12-6) Cuts" },
+            { id: "m3t4", title: "Fluid Shadowboxing Flow" },
+            { id: "m3t5", title: "Rhythm and Pace Variation" }
+        ],
         daily_drill: "Shadowboxing Flow (4 Rounds)"
     },
     {
         month: 4,
         title: "Mastery Entry",
         focus: "Gym Readiness & Wrestling Basics",
-        techniques: ["Live Sparring Flow", "Sprawl (Takedown Defense)", "Clinch Control", "Standing Up in Base", "Counter Timing"],
+        techniques: [
+            { id: "m4t1", title: "Gym/Sparring Readiness" },
+            { id: "m4t2", title: "Sprawl (Takedown Defence)" },
+            { id: "m4t3", title: "Clinch Control (Inside Position)" },
+            { id: "m4t4", title: "Arm Drag Transitions" },
+            { id: "m4t5", title: "Standing Up in Base" }
+        ],
         daily_drill: "Gym Prep / Live Drills"
     }
 ];
@@ -52,14 +79,46 @@ export default function MartialArtsPage() {
     const [selectedMonth, setSelectedMonth] = useState(1);
     const [drillCount, setDrillCount] = useState(0);
     const [isLogging, setIsLogging] = useState(false);
+    const [energy, setEnergy] = useState<string>("medium");
+    const [checkedTechs, setCheckedTechs] = useState<Record<string, boolean>>({});
+
+    useEffect(() => {
+        const savedEnergy = localStorage.getItem("emmanuel_energy_level") || "medium";
+        setEnergy(savedEnergy);
+        const savedTechs = localStorage.getItem("emmanuel_martial_checked");
+        if (savedTechs) setCheckedTechs(JSON.parse(savedTechs));
+    }, []);
+
+    useEffect(() => {
+        localStorage.setItem("emmanuel_martial_checked", JSON.stringify(checkedTechs));
+    }, [checkedTechs]);
 
     const activeMonthData = CURRICULUM.find(c => c.month === selectedMonth)!;
+
+    const toggleTech = (id: string) => {
+        setCheckedTechs(prev => ({ ...prev, [id]: !prev[id] }));
+        if (!checkedTechs[id]) awardXP(5, "Athletics");
+    };
+
+    const getAdaptiveTarget = (base: string) => {
+        const num = parseInt(base.match(/\d+/)?.[0] || "0");
+        const suffix = base.replace(/\d+/, "").trim();
+
+        if (energy === "low") {
+            return `${Math.ceil(num * 0.7)} ${suffix} (Recovery Scale)`;
+        } else if (energy === "high") {
+            return `${Math.ceil(num * 1.5)} ${suffix} (Elite Mode)`;
+        }
+        return base;
+    };
 
     const logDrills = (reps: number) => {
         setIsLogging(true);
         setTimeout(() => {
             setDrillCount(prev => prev + reps);
-            awardXP(reps > 100 ? 50 : 20, "Athletics");
+            // Dynamic XP based on intensity
+            const xpAmount = energy === "high" ? 75 : energy === "low" ? 30 : 50;
+            awardXP(reps > 100 ? xpAmount : 20, "Athletics");
             setIsLogging(false);
         }, 600);
     };
@@ -105,7 +164,7 @@ export default function MartialArtsPage() {
                             exit={{ opacity: 0, x: 20 }}
                             className="bg-bg-surface border border-border rounded-3xl p-8 relative overflow-hidden group"
                         >
-                            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity" aria-hidden="true">
                                 <span className="font-bebas text-9xl text-gold leading-none">{selectedMonth}</span>
                             </div>
 
@@ -118,13 +177,25 @@ export default function MartialArtsPage() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
                                     {activeMonthData.techniques.map((tech, i) => (
                                         <div
-                                            key={tech}
-                                            className="flex items-center gap-3 p-3 bg-bg-elevated border border-border/50 rounded-2xl hover:border-gold/30 transition-all"
+                                            key={tech.id}
+                                            onClick={() => toggleTech(tech.id)}
+                                            className={cn(
+                                                "flex items-center gap-3 p-3 bg-bg-elevated border rounded-2xl transition-all cursor-pointer group/item",
+                                                checkedTechs[tech.id] ? "border-green/30 bg-green/5" : "border-border/50 hover:border-gold/30"
+                                            )}
                                         >
-                                            <div className="w-6 h-6 rounded-lg bg-gold/10 flex items-center justify-center font-mono text-[10px] text-gold">
-                                                {i + 1}
+                                            <div className={cn(
+                                                "w-6 h-6 rounded-lg flex items-center justify-center font-mono text-[10px] transition-colors",
+                                                checkedTechs[tech.id] ? "bg-green/20 text-green" : "bg-gold/10 text-gold"
+                                            )}>
+                                                {checkedTechs[tech.id] ? <CheckCircle2 className="w-3 h-3" /> : (i + 1)}
                                             </div>
-                                            <span className="text-xs text-text-dim font-medium tracking-tight">{tech}</span>
+                                            <span className={cn(
+                                                "text-xs font-medium tracking-tight transition-all",
+                                                checkedTechs[tech.id] ? "text-text line-through opacity-50" : "text-text-dim"
+                                            )}>
+                                                {tech.title}
+                                            </span>
                                         </div>
                                     ))}
                                 </div>
@@ -137,7 +208,7 @@ export default function MartialArtsPage() {
                                                 <Target className="w-5 h-5 text-gold" />
                                             </div>
                                             <div>
-                                                <p className="text-sm text-text-muted font-bold">{activeMonthData.daily_drill}</p>
+                                                <p className="text-sm text-text-muted font-bold">{getAdaptiveTarget(activeMonthData.daily_drill)}</p>
                                                 <p className="text-[10px] text-text-dim font-mono tracking-tight uppercase">Perfect form over speed</p>
                                             </div>
                                         </div>
@@ -178,7 +249,9 @@ export default function MartialArtsPage() {
                             <h4 className="font-bebas text-lg text-text shadow-sm uppercase tracking-wider">Drill Tracker</h4>
                             <div className="flex items-center gap-1 text-gold">
                                 <Activity className="w-3 h-3" />
-                                <span className="font-mono text-[10px] tracking-widest">ACTIVE</span>
+                                <span className="font-mono text-[10px] tracking-widest uppercase">
+                                    {energy === "high" ? "Elite Intensity" : energy === "low" ? "Recovery Mode" : "Standard"}
+                                </span>
                             </div>
                         </div>
 

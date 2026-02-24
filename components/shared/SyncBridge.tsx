@@ -18,7 +18,7 @@ export function SyncBridge() {
 
         try {
             // 1. Gather Local Data
-            const habits = JSON.parse(localStorage.getItem("emmanuel_habits") || "{}");
+            const habitsRaw = JSON.parse(localStorage.getItem("emmanuel_habits") || "{}");
             const focus = JSON.parse(localStorage.getItem("emmanuel_focus_sessions") || "[]");
             const dailyJournal = JSON.parse(localStorage.getItem("emmanuel_journal_daily") || "[]");
             const trades = JSON.parse(localStorage.getItem("emmanuel_trades") || "[]");
@@ -26,11 +26,39 @@ export function SyncBridge() {
             const pillarXP = JSON.parse(localStorage.getItem("emmanuel_sync_pillar_xp") || "[]");
             const energy = localStorage.getItem("emmanuel_energy_level") || "medium";
 
+            // Transform habitsRaw to HabitLog array for server
+            // Format: { habitId, date, completed, week }
+            const habitLogs = Object.entries(habitsRaw).map(([key, val]) => {
+                const parts = key.split('-');
+                const label = parts[0];
+                const datePart = parts.slice(1).join('-'); // Handle yyyy-mm-dd
+
+                // Only sync keys with date format (YYYY-MM-DD)
+                if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) {
+                    return {
+                        habitId: label,
+                        date: datePart,
+                        completed: !!val,
+                        week: 1 // We'll compute this on server or handle it better
+                    };
+                }
+                return null;
+            }).filter(Boolean);
+
             // 2. Push to Server
             const response = await fetch("/api/sync", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ userId: user.id, habits, focus, dailyJournal, trades, xp, pillarXP, energy }),
+                body: JSON.stringify({
+                    userId: user.id,
+                    habitLogs,
+                    focus,
+                    dailyJournal,
+                    trades,
+                    xp,
+                    pillarXP,
+                    energy
+                }),
             });
 
             // 3. Pull & Resolve (Update Local with Server State)
@@ -45,9 +73,14 @@ export function SyncBridge() {
                 // Clear the sync queue for pillars since they are now on server
                 localStorage.setItem("emmanuel_sync_pillar_xp", "[]");
 
-                // If local data is empty but server has data, populate it
-                if (Object.keys(habits).length === 0 && state.habits) {
-                    localStorage.setItem("emmanuel_habits", JSON.stringify(state.habits));
+                // Merge habits
+                if (state.habits) {
+                    const newHabits = { ...habitsRaw };
+                    state.habits.forEach((h: { habitId: string; date: string; completed: boolean }) => {
+                        const key = `${h.habitId}-${h.date}`;
+                        newHabits[key] = h.completed;
+                    });
+                    localStorage.setItem("emmanuel_habits", JSON.stringify(newHabits));
                 }
                 if (focus.length === 0 && state.focus) {
                     localStorage.setItem("emmanuel_focus_sessions", JSON.stringify(state.focus));

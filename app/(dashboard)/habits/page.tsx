@@ -157,7 +157,8 @@ export default function HabitsPage() {
             </header>
 
             <section className="bg-bg-surface border border-border rounded-xl overflow-hidden shadow-2xl">
-                <div className="overflow-x-auto">
+                {/* Desktop Table View */}
+                <div className="hidden md:block overflow-x-auto">
                     <table className="w-full border-collapse">
                         <thead>
                             <tr className="bg-bg-elevated/50">
@@ -180,7 +181,14 @@ export default function HabitsPage() {
                         <tbody>
                             {habits.map((habit) => {
                                 let count = 0;
-                                days.forEach(day => { if (checkedState[`${habit.label}-${day}`]) count++; });
+                                weekDates.forEach(date => {
+                                    const dk = date.toISOString().split('T')[0];
+                                    if (checkedState[`${habit.label}-${dk}`]) count++;
+                                    else if (week === 1) {
+                                        const dayName = days[date.getDay() === 0 ? 6 : date.getDay() - 1];
+                                        if (checkedState[`${habit.label}-${dayName}`]) count++;
+                                    }
+                                });
                                 const pct = Math.round((count / 7) * 100);
                                 const isGreat = pct >= 80;
                                 const isBad = pct < 50 && count > 0;
@@ -198,10 +206,7 @@ export default function HabitsPage() {
                                             let isChecked = false;
                                             if (dateKey && checkedState[`${habit.label}-${dateKey}`]) {
                                                 isChecked = true;
-                                            } else if (week === 1 && !dateKey) { // Should not happen with weekDates, but for safety
-                                                isChecked = !!checkedState[`${habit.label}-${day}`];
                                             } else if (week === 1 && dateKey) {
-                                                // If dateKey is not checked, check if the abstract day was checked
                                                 isChecked = !!checkedState[`${habit.label}-${day}`];
                                             }
 
@@ -230,6 +235,71 @@ export default function HabitsPage() {
                             })}
                         </tbody>
                     </table>
+                </div>
+
+                {/* Mobile Card View */}
+                <div className="md:hidden divide-y divide-border/50">
+                    {habits.map((habit) => {
+                        let count = 0;
+                        weekDates.forEach(date => {
+                            const dk = date.toISOString().split('T')[0];
+                            if (checkedState[`${habit.label}-${dk}`]) count++;
+                            else if (week === 1) {
+                                const dayName = days[date.getDay() === 0 ? 6 : date.getDay() - 1];
+                                if (checkedState[`${habit.label}-${dayName}`]) count++;
+                            }
+                        });
+                        const pct = Math.round((count / 7) * 100);
+
+                        return (
+                            <div key={habit.label} className="p-4 space-y-4 bg-bg-surface">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <h3 className="font-mono text-[10px] font-bold uppercase tracking-tight">{habit.label}</h3>
+                                        <p className="font-mono text-[8px] text-text-dim uppercase tracking-widest">{habit.category}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <span className={cn("font-bebas text-lg", pct >= 80 ? "text-green" : "text-gold")}>{pct}%</span>
+                                        <p className="font-mono text-[8px] text-text-dim uppercase">Success</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex justify-between items-center gap-1">
+                                    {days.map((day, dIdx) => {
+                                        const dateObj = weekDates[dIdx];
+                                        const dateKey = dateObj ? dateObj.toISOString().split('T')[0] : null;
+
+                                        let isChecked = false;
+                                        if (dateKey && checkedState[`${habit.label}-${dateKey}`]) {
+                                            isChecked = true;
+                                        } else if (week === 1 && dateKey) {
+                                            isChecked = !!checkedState[`${habit.label}-${day}`];
+                                        }
+
+                                        return (
+                                            <button
+                                                key={day}
+                                                disabled={!dateKey}
+                                                onClick={() => dateObj && toggleHabit(habit.label, dateObj)}
+                                                className={cn(
+                                                    "flex-1 aspect-square rounded-lg border-2 flex flex-col items-center justify-center transition-all active:scale-90",
+                                                    isChecked
+                                                        ? `${habit.color.split(' ')[0]} bg-current/10 border-current`
+                                                        : "border-border-2 bg-bg-elevated/30 text-text-dim",
+                                                    !dateKey && "opacity-20"
+                                                )}
+                                            >
+                                                <span className="font-bebas text-[10px]">{day[0]}</span>
+                                                <span className="font-mono text-[7px] opacity-60">
+                                                    {dateObj ? dateObj.getDate() : ''}
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
             </section>
 
