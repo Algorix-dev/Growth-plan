@@ -26,17 +26,12 @@ export default function StreakHeatmap({ checkedState, totalHabits }: HeatmapProp
 
     // Helper to get completion % for a specific date
     const getDayCompletion = (date: Date) => {
-        const dayStr = format(date, "EEE"); // "Mon", "Tue" etc base format from existing app
-        // The app currently saves state as "HabitName-Mon".
-        // To precisely track history, it would ideally be "HabitName-YYYY-MM-DD"
-        // Since the current app structure uses abstract days for the current week only,
-        // we will simulate historical data completion based on current abstract days, 
-        // mapping them sequentially for visual effect, but real persistence would require date-keys.
+        const dateKey = format(date, "yyyy-MM-dd");
 
         let completed = 0;
-        // Search through checked state for matching active day
-        Object.entries(checkedState).forEach(([key, val]) => {
-            if (val && key.endsWith(`-${dayStr}`)) { // This maps back to the current week's M-S abstract
+        // Search through checked state for matching active date
+        Object.keys(checkedState).forEach((key) => {
+            if (key.endsWith(`-${dateKey}`) && checkedState[key]) {
                 completed++;
             }
         });
@@ -56,7 +51,6 @@ export default function StreakHeatmap({ checkedState, totalHabits }: HeatmapProp
         <div className="bg-bg-surface border border-border p-6 rounded-xl overflow-hidden mt-8">
             <h3 className="font-bebas text-2xl mb-6 text-gold flex items-center gap-3">
                 <span>12-Week Consistency</span>
-                <span className="font-mono bg-gold/10 text-gold px-2 py-0.5 rounded text-[10px] tracking-widest uppercase border border-gold/20">Data Projection</span>
             </h3>
 
             <div className="flex gap-4">

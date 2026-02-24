@@ -126,13 +126,17 @@ export default function OverviewPage() {
         const savedHabits = localStorage.getItem("emmanuel_habits");
         const habitsData = savedHabits ? JSON.parse(savedHabits) : {};
 
-        const todayStr = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"][new Date().getDay()];
-        const checkedToday = Object.keys(habitsData).filter(k => k.endsWith(`-${todayStr}`) && habitsData[k]).length;
+        const today = new Date();
+        const dateKey = today.toISOString().split('T')[0];
+        const dayStr = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"][today.getDay()];
+
+        // Count today's checked habits (Support both dateKey and fallback for dayStr during transition)
+        const checkedToday = initialHabits.filter(h => habitsData[`${h.label}-${dateKey}`] || habitsData[`${h.label}-${dayStr}`]).length;
 
         let totalChecked = 0;
         Object.values(habitsData).forEach(v => { if (v) totalChecked++; });
-        const totalSlots = initialHabits.length * 7;
-        const streakPct = totalSlots > 0 ? Math.round((totalChecked / totalSlots) * 100) : 0;
+        const totalSlots = initialHabits.length * 7 * weekCount; // Approximate total slots since start
+        const streakPct = totalSlots > 0 ? Math.round((totalChecked / (initialHabits.length * 7 * 12)) * 100) : 0; // Relative to the 12-week target
 
         setStats(prev => ({
             ...prev,

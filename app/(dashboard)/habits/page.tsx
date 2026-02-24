@@ -23,6 +23,7 @@ export default function HabitsPage() {
     const [week, setWeek] = useState(1);
     const [dateRange, setDateRange] = useState("");
     const [checkedState, setCheckedState] = useState<Record<string, boolean>>({});
+    const [weekDates, setWeekDates] = useState<Date[]>([]);
 
     // Load from localStorage & Calculate Week
     useEffect(() => {
@@ -31,35 +32,62 @@ export default function HabitsPage() {
 
         const savedStart = localStorage.getItem("emmanuel_start_date");
         if (savedStart) {
-            const start = new Date(savedStart);
+            const startStr = savedStart;
+            const start = new Date(startStr);
             const now = new Date();
 
-            // Calculate week number
+            // Calculate current week number
             const diffTime = Math.abs(now.getTime() - start.getTime());
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             const currentWeek = Math.max(1, Math.ceil(diffDays / 7));
-            setWeek(currentWeek);
 
-            // Calculate date range for current week
-            const weekStart = new Date(start);
-            weekStart.setDate(start.getDate() + (currentWeek - 1) * 7);
-            const weekEnd = new Date(weekStart);
-            weekEnd.setDate(weekStart.getDate() + 6);
-
-            const format = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-            setDateRange(`${format(weekStart)} – ${format(weekEnd)}`);
-        } else {
-            setDateRange("Plan not started");
+            // If it's the first visit, default to the CURRENT week
+            // But we let the state handle the 'active' week view
+            if (week === 1 && currentWeek > 1) {
+                // setWeek(currentWeek); // Optional: default to latest week
+            }
         }
     }, []);
+
+    // Update Date Range whenever week changes
+    useEffect(() => {
+        const savedStart = localStorage.getItem("emmanuel_start_date");
+        if (!savedStart) {
+            setDateRange("Plan not started");
+            return;
+        }
+
+        const start = new Date(savedStart);
+        // Normalize start to the beginning of its week (Monday)
+        const dayOfStart = start.getDay(); // 0 is Sun, 1 is Mon...
+        const diffToMon = (dayOfStart === 0 ? -6 : 1 - dayOfStart);
+        const startOfPlanWeek = new Date(start);
+        startOfPlanWeek.setDate(start.getDate() + diffToMon);
+
+        const weekStart = new Date(startOfPlanWeek);
+        weekStart.setDate(startOfPlanWeek.getDate() + (week - 1) * 7);
+
+        const currentWeekDates: Date[] = [];
+        for (let i = 0; i < 7; i++) {
+            const d = new Date(weekStart);
+            d.setDate(weekStart.getDate() + i);
+            currentWeekDates.push(d);
+        }
+        setWeekDates(currentWeekDates);
+
+        const format = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        setDateRange(`${format(currentWeekDates[0])} – ${format(currentWeekDates[6])}`);
+    }, [week]);
 
     // Save to localStorage
     useEffect(() => {
         localStorage.setItem("emmanuel_habits", JSON.stringify(checkedState));
     }, [checkedState]);
 
-    const toggleHabit = (habitLabel: string, day: string) => {
-        const key = `${habitLabel}-${day}`;
+    const toggleHabit = (habitLabel: string, date: Date) => {
+        const dateKey = date.toISOString().split('T')[0];
+        const key = `${habitLabel}-${dateKey}`;
+
         setCheckedState(prev => {
             const isTicking = !prev[key];
             const next = { ...prev, [key]: isTicking };
@@ -68,18 +96,19 @@ export default function HabitsPage() {
             if (isTicking) {
                 awardXP(10);
 
-                // Check if all habits for this specific day are now complete (Bonus XP)
-                const allForDay = initialHabits.every(h => next[`${h.label}-${day}`]);
+                // Check if all habits for this specific date are now complete (Bonus XP)
+                const allForDay = initialHabits.every(h => next[`${h.label}-${dateKey}`]);
                 if (allForDay) {
                     awardXP(50); // Daily Completion Bonus
                 }
             }
 
             // Auto-start: record plan start date on first ever habit tick
-            if (next[key] && !localStorage.getItem("emmanuel_start_date")) {
-                const now = new Date().toISOString();
-                localStorage.setItem("emmanuel_start_date", now);
-                setDateRange(`${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – …`);
+            if (isTicking && !localStorage.getItem("emmanuel_start_date")) {
+                const now = new Date();
+                localStorage.setItem("emmanuel_start_date", now.toISOString());
+                // Force a re-render of date range by resetting week 1 logic
+                setWeek(1);
             }
 
             // ⚡ Trigger immediate sync
@@ -133,11 +162,17 @@ export default function HabitsPage() {
                         <thead>
                             <tr className="bg-bg-elevated/50">
                                 <th className="p-4 text-left font-mono text-[10px] uppercase tracking-widest text-text-dim border-b border-border min-w-[200px]">Habit</th>
-                                {days.map(day => (
-                                    <th key={day} className="p-4 text-center font-bebas text-sm tracking-widest text-text-muted border-b border-border w-16">
-                                        {day}
-                                    </th>
-                                ))}
+                                {days.map((day, idx) => {
+                                    const dateObj = weekDates[idx];
+                                    return (
+                                        <th key={day} className="p-4 text-center border-b border-border w-16">
+                                            <p className="font-bebas text-sm tracking-widest text-text-muted">{day}</p>
+                                            <p className="font-mono text-[8px] text-text-dim opacity-60">
+                                                {dateObj ? dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '-'}
+                                            </p>
+                                        </th>
+                                    );
+                                })}
                                 <th className="p-4 text-center font-bebas text-sm tracking-widest text-gold border-b border-border w-16">🔥</th>
                                 <th className="p-4 text-center font-bebas text-sm tracking-widest text-text-dim border-b border-border w-16">%</th>
                             </tr>
@@ -156,18 +191,34 @@ export default function HabitsPage() {
                                             <p className="font-mono text-xs font-semibold uppercase">{habit.label}</p>
                                             <p className="font-mono text-[9px] text-text-dim uppercase tracking-wider">{habit.category}</p>
                                         </td>
-                                        {days.map(day => (
-                                            <td key={day} className="p-4 text-center border-b border-border/50">
-                                                <Checkbox
-                                                    checked={checkedState[`${habit.label}-${day}`]}
-                                                    onCheckedChange={() => toggleHabit(habit.label, day)}
-                                                    className={cn(
-                                                        "w-5 h-5 transition-transform active:scale-95",
-                                                        habit.color.split(' ')[0] // Uses border color for checkbox
-                                                    )}
-                                                />
-                                            </td>
-                                        ))}
+                                        {days.map((day, dIdx) => {
+                                            const dateObj = weekDates[dIdx];
+                                            const dateKey = dateObj ? dateObj.toISOString().split('T')[0] : null;
+
+                                            let isChecked = false;
+                                            if (dateKey && checkedState[`${habit.label}-${dateKey}`]) {
+                                                isChecked = true;
+                                            } else if (week === 1 && !dateKey) { // Should not happen with weekDates, but for safety
+                                                isChecked = !!checkedState[`${habit.label}-${day}`];
+                                            } else if (week === 1 && dateKey) {
+                                                // If dateKey is not checked, check if the abstract day was checked
+                                                isChecked = !!checkedState[`${habit.label}-${day}`];
+                                            }
+
+                                            return (
+                                                <td key={day} className="p-4 text-center border-b border-border/50">
+                                                    <Checkbox
+                                                        checked={isChecked}
+                                                        disabled={!dateKey}
+                                                        onCheckedChange={() => dateObj && toggleHabit(habit.label, dateObj)}
+                                                        className={cn(
+                                                            "w-5 h-5 transition-transform active:scale-95",
+                                                            habit.color.split(' ')[0]
+                                                        )}
+                                                    />
+                                                </td>
+                                            );
+                                        })}
                                         <td className={cn("p-4 text-center border-b border-border/50 font-bebas text-lg", isGreat ? "text-green" : isBad ? "text-red" : "text-text")}>
                                             {count}
                                         </td>
@@ -192,7 +243,15 @@ export default function HabitsPage() {
 
                     habits.forEach(h => {
                         let hChecks = 0;
-                        days.forEach(d => { if (checkedState[`${h.label}-${d}`]) hChecks++; });
+                        weekDates.forEach(date => {
+                            const dk = date.toISOString().split('T')[0];
+                            if (checkedState[`${h.label}-${dk}`]) hChecks++;
+                            // Fallback for old abstract days if viewing Week 1
+                            else if (week === 1) {
+                                const dName = days[date.getDay() === 0 ? 6 : date.getDay() - 1];
+                                if (checkedState[`${h.label}-${dName}`]) hChecks++;
+                            }
+                        });
                         totalChecks += hChecks;
                         habitScores.push({ label: h.label, pct: Math.round((hChecks / 7) * 100) });
 
