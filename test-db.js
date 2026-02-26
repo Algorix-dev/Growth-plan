@@ -1,15 +1,22 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const { PrismaClient } = require('@prisma/client')
+
+const prisma = new PrismaClient({
+    datasources: {
+        db: {
+            url: "postgres://postgres.dqxlzeegaflkwzbmezgn:CodeCraft2008%40%23%24@aws-1-eu-west-1.pooler.supabase.com:5432/postgres"
+        }
+    }
+})
 
 async function main() {
     try {
-        await prisma.$connect();
-        console.log("SUCCESS: Connected to database");
-    } catch (e) {
-        console.log("ERROR OUTPUT:");
-        console.log(e);
+        const userCount = await prisma.user.count()
+        console.log(`Direct Database connection successful. User count: ${userCount}`)
+    } catch (error) {
+        console.error('Direct Database connection failed:', error)
     } finally {
-        await prisma.$disconnect();
+        await prisma.$disconnect()
     }
 }
-main();
+
+main()

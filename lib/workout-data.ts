@@ -263,108 +263,212 @@ export const MONTH_1: WorkoutMonth = {
 };
 
 export const MONTH_2: WorkoutMonth = {
-    ...MONTH_1,
     month: 2,
     push_rounds: 4,
     core_rounds: 3,
-    modifications: {
-        plank_duration_seconds: 45,
-        hollow_body_duration_seconds: 30,
-        dead_hang_target_seconds: 45
-    },
-    days: MONTH_1.days.map(day => {
-        const newDay = { ...day };
-        if (day.day === "Monday") {
-            newDay.blocks = day.blocks.map(block => {
-                if (block.type === "push") {
-                    return {
-                        ...block,
-                        rounds: 4,
-                        exercises: block.exercises.map(ex => {
-                            if (ex.id === "m1-mon-p3b") {
-                                return {
-                                    id: "m2-new-01",
-                                    name: "Archer Push-Ups",
-                                    category: "push",
-                                    difficulty: "intermediate",
-                                    sets: 3,
-                                    reps: "5 each side",
-                                    how: "Lower toward one hand while keeping other arm straight.",
-                                    tip: "Builds extreme unilateral strength."
-                                };
-                            }
-                            return ex;
-                        })
-                    };
+    days: [
+        {
+            day: "Monday",
+            theme: "Push Volume + Static Strength",
+            color: "#c94646",
+            estimated_duration: "55 minutes",
+            blocks: [
+                {
+                    id: "m2-mon-push",
+                    name: "Push Strength Block",
+                    type: "push",
+                    rounds: 4,
+                    exercises: [
+                        { id: "m2-mon-p1", name: "Incline Push-Ups", sets: 4, reps: "15", rest_after: "60 seconds", how: "Hands on elevated surface. Focus on lower chest.", tip: "Building explosive drive." },
+                        { id: "m2-mon-p2", name: "Archer Push-Ups", sets: 3, reps: "6 each side", rest_after: "90 seconds", how: "One arm straight, other bends. Weight focused on bending arm.", tip: "Foundational for one-arm pushups." },
+                        { id: "m2-mon-p3", name: "Diamond Push-Ups", sets: 3, reps: "12", rest_after: "90 seconds", how: "Hands touching. Index/thumbs form triangle.", tip: "Tricep dominant." }
+                    ]
+                },
+                {
+                    id: "m2-mon-core",
+                    name: "Core Tension Block",
+                    type: "core",
+                    rounds: 3,
+                    exercises: [
+                        { id: "m2-mon-c1", name: "Plank Hold", duration_seconds: 45, rest_after: "45 seconds", how: "Static hold. Max tension.", form_cues: ["Core locked", "Glutes squeezed"] },
+                        { id: "m2-mon-c2", name: "Side Plank", duration_seconds: 30, rest_after: "30 seconds", how: "Hold on one elbow. 30s per side.", form_cues: ["Hips high"] }
+                    ]
                 }
-                return block;
-            });
-        }
-        if (day.day === "Wednesday") {
-            newDay.blocks = day.blocks.map(block => {
-                if (block.type === "pull") {
-                    return {
-                        ...block,
-                        exercises: [
-                            ...block.exercises,
-                            {
-                                id: "m2-new-02",
-                                name: "Negative Pull-Ups",
-                                category: "pull",
-                                difficulty: "intermediate",
-                                sets: 5,
-                                reps: 3,
-                                how: "Lower yourself as slowly as possible (5s).",
-                                tip: "Fast-track to your first pull-up."
-                            }
-                        ]
-                    };
+            ]
+        },
+        {
+            day: "Tuesday",
+            theme: "Dynamic Striking Flow",
+            color: "#c9962e",
+            estimated_duration: "45 minutes",
+            blocks: [
+                {
+                    id: "m2-tue-shadow",
+                    name: "Shadowboxing Flow",
+                    type: "skill",
+                    rounds: 5,
+                    round_duration: "3 minutes",
+                    rest_between: "60 seconds",
+                    exercises: [
+                        { id: "m2-tue-s1", name: "Combos (1-2-Kick)", duration_seconds: 180, how: "Focus on the transition between punches and kicks.", tip: "Speed through the turn." }
+                    ]
                 }
-                return block;
-            });
-        }
-        return newDay;
-    })
+            ]
+        },
+        {
+            day: "Wednesday",
+            theme: "Pull Power + Negative Work",
+            color: "#4676c9",
+            estimated_duration: "45 minutes",
+            blocks: [
+                {
+                    id: "m2-wed-pull",
+                    name: "Pull Strength Block",
+                    type: "pull",
+                    rounds: 3,
+                    exercises: [
+                        { id: "m2-wed-p1", name: "Negative Pull-Ups", sets: 4, reps: 5, rest_after: "90 seconds", how: "Jump up, lower as slowly as possible (5-7 seconds).", tip: "The negative is where the strength is built." },
+                        { id: "m2-wed-p2", name: "Australian Rows (Elevated)", sets: 3, reps: 10, rest_after: "60 seconds", how: "Feet elevated on chair for more resistance.", tip: "Pull to lower chest." }
+                    ]
+                }
+            ]
+        },
+        {
+            day: "Thursday",
+            theme: "Unilateral Power (Legs)",
+            color: "#46c976",
+            estimated_duration: "50 minutes",
+            blocks: [
+                {
+                    id: "m2-thu-legs",
+                    name: "Leg Strength Block",
+                    type: "legs",
+                    rounds: 1,
+                    exercises: [
+                        { id: "m2-thu-l1", name: "Archer Squats", sets: 3, reps: "8 each leg", rest_after: "60 seconds", how: "Wide stance. Lower to one side, keep other leg straight.", tip: "Unilateral leg focus." },
+                        { id: "m2-thu-l2", name: "Explosive Step-Ups", sets: 3, reps: "10 per leg", rest_after: "60 seconds", how: "Step onto chair/bench and explode into a hop.", tip: "Explosive power." }
+                    ]
+                }
+            ]
+        },
+        {
+            day: "Friday",
+            theme: "High Intensity Circuit",
+            color: "#d47a2a",
+            estimated_duration: "40 minutes",
+            blocks: [
+                {
+                    id: "m2-fri-circuit",
+                    name: "Intensity Circuit",
+                    type: "circuit",
+                    rounds: 5,
+                    exercise_duration_seconds: 40,
+                    rest_between_exercises: "15 seconds",
+                    exercises: [
+                        { id: "m2-fri-c1", name: "Clap Push-Ups (or explosive)", duration_seconds: 40, how: "Max power." },
+                        { id: "m2-fri-c2", name: "Jump Lunges", duration_seconds: 40, how: "Switch legs in the air." }
+                    ]
+                }
+            ]
+        },
+        {
+            day: "Saturday",
+            theme: "Skill Mastery + Handstands",
+            color: "#c9962e",
+            estimated_duration: "60 minutes",
+            blocks: [
+                { id: "m2-sat-skill", name: "Handstand Progression", type: "skill", rounds: 1, exercises: [{ id: "m2-sat-s1", name: "Wall Walk Hold", sets: 3, duration_seconds: 30, how: "Walk feet up wall into vertical hold." }] }
+            ]
+        },
+        { day: "Sunday", theme: "Recovery", color: "#5a5a78", estimated_duration: "30m", blocks: [] }
+    ]
 };
 
 export const MONTH_3: WorkoutMonth = {
-    ...MONTH_2,
     month: 3,
     push_rounds: 4,
     core_rounds: 3,
-    modifications: {
-        plank_duration_seconds: 60,
-        hollow_body_duration_seconds: 45,
-        dead_hang_target_seconds: 60
-    },
-    days: MONTH_2.days.map(day => {
-        const newDay = { ...day };
-        if (day.day === "Monday") {
-            newDay.blocks = day.blocks.map(block => {
-                if (block.type === "push") {
-                    return {
-                        ...block,
-                        exercises: block.exercises.map(ex => {
-                            if (ex.id === "m1-mon-p1") {
-                                return {
-                                    ...ex,
-                                    id: "m3-new-01",
-                                    name: "Clap Push-Ups",
-                                    difficulty: "advanced",
-                                    reps: 5,
-                                    how: "Explode up and clap hands in mid-air.",
-                                    tip: "Developing extreme upper body power."
-                                };
-                            }
-                            return ex;
-                        })
-                    };
+    days: [
+        {
+            day: "Monday",
+            theme: "Explosive Peak",
+            color: "#c94646",
+            estimated_duration: "60 minutes",
+            blocks: [
+                {
+                    id: "m3-mon-push",
+                    name: "Explosive Push Block",
+                    type: "push",
+                    rounds: 4,
+                    exercises: [
+                        { id: "m3-mon-p1", name: "Clap Push-Ups", sets: 4, reps: 8, rest_after: "90 seconds", how: "Explode up, clap hands, land softly.", tip: "Max power." },
+                        { id: "m3-mon-p2", name: "Decline Pike Push-Ups", sets: 3, reps: 8, rest_after: "90 seconds", how: "Feet on chair. Push-up focus on shoulders.", tip: "Handstand strength builder." }
+                    ]
                 }
-                return block;
-            });
-        }
-        return newDay;
-    })
+            ]
+        },
+        {
+            day: "Tuesday",
+            theme: "War Speed (Striking)",
+            color: "#c9962e",
+            estimated_duration: "50 minutes",
+            blocks: [
+                { id: "m3-tue-skill", name: "High Speed Shadowboxing", type: "skill", rounds: 6, round_duration: "3 minutes", exercises: [{ id: "m3-tue-s1", name: "Turbo Combos", duration_seconds: 180, how: "Maximum speed for 10s, then flow for 20s. Repeat.", tip: "High intensity." }] }
+            ]
+        },
+        {
+            day: "Wednesday",
+            theme: "True Pull Mastery",
+            color: "#4676c9",
+            estimated_duration: "50 minutes",
+            blocks: [
+                {
+                    id: "m3-wed-pull",
+                    name: "Pull Performance Block",
+                    type: "pull",
+                    rounds: 4,
+                    exercises: [
+                        { id: "m3-wed-p1", name: "Dead Hang (Static)", duration_seconds: 60, how: "Active hang. Shoulders engaged.", tip: "The ultimate grip test." },
+                        { id: "m3-wed-p2", name: "Chin-Ups / Pull-Ups", sets: 3, reps: "AMRAP", how: "Chin over bar. Full extension.", tip: "True vertical pulling." }
+                    ]
+                }
+            ]
+        },
+        {
+            day: "Thursday",
+            theme: "Elite Leg Power",
+            color: "#46c976",
+            estimated_duration: "50 minutes",
+            blocks: [
+                {
+                    id: "m3-thu-legs",
+                    name: "Explosive Legs Block",
+                    type: "legs",
+                    rounds: 1,
+                    exercises: [
+                        { id: "m3-thu-l1", name: "Pistol Squat (Assisted)", sets: 3, reps: "5 per leg", how: "One leg squat holding a door frame for balance.", tip: "Single leg dominance." }
+                    ]
+                }
+            ]
+        },
+        {
+            day: "Friday",
+            theme: "The Grind (Max Volume)",
+            color: "#d47a2a",
+            estimated_duration: "Circuit: 45m",
+            blocks: [
+                { id: "m3-fri-circuit", name: "Elite Circuit", type: "circuit", rounds: 6, exercise_duration_seconds: 45, exercises: [{ id: "m3-fri-c1", name: "Explosive Burpees", duration_seconds: 45, how: "Chest to floor, jump with hands overhead." }] }
+            ]
+        },
+        {
+            day: "Saturday",
+            theme: "Skill Specialization",
+            color: "#c9962e",
+            estimated_duration: "60 minutes",
+            blocks: []
+        },
+        { day: "Sunday", theme: "Recovery", color: "#5a5a78", estimated_duration: "30m", blocks: [] }
+    ]
 };
 
 export const MILESTONES = [

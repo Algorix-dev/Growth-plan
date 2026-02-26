@@ -105,6 +105,9 @@ export function SyncBridge() {
                 if (state.martialArtLogs) {
                     localStorage.setItem("emmanuel_ma_logs", JSON.stringify(state.martialArtLogs));
                 }
+
+                // Trigger UI refresh
+                window.dispatchEvent(new CustomEvent("sync:success"));
             } else {
                 throw new Error("Sync failed");
             }

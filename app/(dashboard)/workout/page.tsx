@@ -47,8 +47,20 @@ export default function WorkoutPage() {
     const [workoutLogs, setWorkoutLogs] = useState<WorkoutLog[]>([]);
 
     useEffect(() => {
-        const savedLogs = JSON.parse(localStorage.getItem("emmanuel_workout_logs") || "[]");
-        setWorkoutLogs(savedLogs);
+        const loadLogs = () => {
+            const savedLogs = JSON.parse(localStorage.getItem("emmanuel_workout_logs") || "[]");
+            setWorkoutLogs(savedLogs);
+        };
+
+        loadLogs();
+
+        // Listen for sync completions and storage changes (multi-tab)
+        window.addEventListener("sync:success", loadLogs);
+        window.addEventListener("storage", loadLogs);
+        return () => {
+            window.removeEventListener("sync:success", loadLogs);
+            window.removeEventListener("storage", loadLogs);
+        };
     }, []);
 
     const activeMonthData = month === 1 ? MONTH_1 : month === 2 ? MONTH_2 : MONTH_3;

@@ -29,6 +29,7 @@ export function WorkoutTimer({ isOpen, onClose, initialSeconds, title }: Workout
     const [isMuted, setIsMuted] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
 
     const toggleTimer = () => setIsRunning(!isRunning);
     const resetTimer = () => {
@@ -36,11 +37,50 @@ export function WorkoutTimer({ isOpen, onClose, initialSeconds, title }: Workout
         setSeconds(initialSeconds);
     };
 
+    const toggleFullscreen = async () => {
+        if (!containerRef.current) return;
+
+        try {
+            if (!document.fullscreenElement) {
+                await containerRef.current.requestFullscreen();
+                setIsFullscreen(true);
+            } else {
+                await document.exitFullscreen();
+                setIsFullscreen(false);
+            }
+        } catch (err) {
+            console.error("Fullscreen Error:", err);
+            // Fallback to local state if API fails
+            setIsFullscreen(!isFullscreen);
+        }
+    };
+
+    // Exit fullscreen on close
+    const handleClose = async () => {
+        if (document.fullscreenElement) {
+            try {
+                await document.exitFullscreen();
+            } catch (e) {
+                console.error("Exit Fullscreen Error", e);
+            }
+        }
+        setIsFullscreen(false);
+        onClose();
+    };
+
     const formatTime = (s: number) => {
         const mins = Math.floor(s / 60);
         const secs = s % 60;
         return `${mins}:${secs.toString().padStart(2, "0")}`;
     };
+
+    useEffect(() => {
+        const handleFsChange = () => {
+            setIsFullscreen(!!document.fullscreenElement);
+        };
+        document.addEventListener("fullscreenchange", handleFsChange);
+        return () => document.removeEventListener("fullscreenchange", handleFsChange);
+    }, []);
 
     useEffect(() => {
         if (isRunning && seconds > 0) {
@@ -66,6 +106,7 @@ export function WorkoutTimer({ isOpen, onClose, initialSeconds, title }: Workout
     return (
         <AnimatePresence>
             <motion.div
+                ref={containerRef}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
@@ -91,13 +132,13 @@ export function WorkoutTimer({ isOpen, onClose, initialSeconds, title }: Workout
                             {isMuted ? <VolumeX className="w-5 h-5 text-red" /> : <Volume2 className="w-5 h-5 text-gold" />}
                         </button>
                         <button
-                            onClick={() => setIsFullscreen(!isFullscreen)}
+                            onClick={toggleFullscreen}
                             className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10"
                         >
                             {isFullscreen ? <Minimize2 className="w-5 h-5 text-gold" /> : <Maximize2 className="w-5 h-5 text-gold" />}
                         </button>
                         <button
-                            onClick={onClose}
+                            onClick={handleClose}
                             className="w-10 h-10 rounded-full bg-red/10 border border-red/20 flex items-center justify-center hover:bg-red/20 group"
                         >
                             <X className="w-5 h-5 text-red group-hover:rotate-90 transition-transform" />

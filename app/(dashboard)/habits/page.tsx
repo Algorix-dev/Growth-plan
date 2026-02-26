@@ -27,26 +27,35 @@ export default function HabitsPage() {
 
     // Load from localStorage & Calculate Week
     useEffect(() => {
-        const saved = localStorage.getItem("emmanuel_habits");
-        if (saved) setCheckedState(JSON.parse(saved));
+        const loadHabits = () => {
+            const saved = localStorage.getItem("emmanuel_habits");
+            if (saved) setCheckedState(JSON.parse(saved));
 
-        const savedStart = localStorage.getItem("emmanuel_start_date");
-        if (savedStart) {
-            const startStr = savedStart;
-            const start = new Date(startStr);
-            const now = new Date();
+            const savedStart = localStorage.getItem("emmanuel_start_date");
+            if (savedStart) {
+                const startStr = savedStart;
+                const start = new Date(startStr);
+                const now = new Date();
 
-            // Calculate current week number
-            const diffTime = Math.abs(now.getTime() - start.getTime());
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            const currentWeek = Math.max(1, Math.ceil(diffDays / 7));
+                // Calculate current week number
+                const diffTime = Math.abs(now.getTime() - start.getTime());
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                const currentWeek = Math.max(1, Math.ceil(diffDays / 7));
 
-            // If it's the first visit, default to the CURRENT week
-            // But we let the state handle the 'active' week view
-            if (week === 1 && currentWeek > 1) {
-                // setWeek(currentWeek); // Optional: default to latest week
+                // If it's the first visit, default to the CURRENT week
+                if (week === 1 && currentWeek > 1) {
+                    // setWeek(currentWeek); // Optional: default to latest week
+                }
             }
-        }
+        };
+
+        loadHabits();
+        window.addEventListener("sync:success", loadHabits);
+        window.addEventListener("storage", loadHabits);
+        return () => {
+            window.removeEventListener("sync:success", loadHabits);
+            window.removeEventListener("storage", loadHabits);
+        };
     }, [week]);
 
     // Update Date Range whenever week changes

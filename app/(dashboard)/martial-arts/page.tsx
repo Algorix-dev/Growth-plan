@@ -83,10 +83,20 @@ export default function MartialArtsPage() {
     const [checkedTechs, setCheckedTechs] = useState<Record<string, boolean>>({});
 
     useEffect(() => {
-        const savedEnergy = localStorage.getItem("emmanuel_energy_level") || "medium";
-        setEnergy(savedEnergy);
-        const savedTechs = localStorage.getItem("emmanuel_martial_checked");
-        if (savedTechs) setCheckedTechs(JSON.parse(savedTechs));
+        const loadTechs = () => {
+            const savedEnergy = localStorage.getItem("emmanuel_energy_level") || "medium";
+            setEnergy(savedEnergy);
+            const savedTechs = localStorage.getItem("emmanuel_martial_checked");
+            if (savedTechs) setCheckedTechs(JSON.parse(savedTechs));
+        };
+
+        loadTechs();
+        window.addEventListener("sync:success", loadTechs);
+        window.addEventListener("storage", loadTechs);
+        return () => {
+            window.removeEventListener("sync:success", loadTechs);
+            window.removeEventListener("storage", loadTechs);
+        };
     }, []);
 
     useEffect(() => {
