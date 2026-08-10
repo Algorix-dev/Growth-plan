@@ -1,11 +1,12 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { MapPin, Info, Timer, Play, Pause, StopCircle } from "lucide-react";
-import { scheduleData, days, ScheduleBlock } from "@/lib/data";
+import { MapPin, Info, Timer, Play, Pause, StopCircle, Pencil, Trash2, Save, X, PlusCircle, RotateCcw } from "lucide-react";
+import { scheduleData, days, ScheduleBlock, DayData } from "@/lib/data";
 import { awardXP } from "@/components/shared/ForgeLevelBadge";
+import { applyScheduleOverride, setDayOverride, resetDay, resetAllScheduleOverrides, hasAnyScheduleOverride, isDayOverridden, emptyBlock } from "@/lib/schedule-overrides";
 
 export default function SchedulePage() {
     const [activeDay, setActiveDay] = useState(() => {
@@ -15,7 +16,62 @@ export default function SchedulePage() {
         return days[adjustedDayIndex];
     });
 
-    const dayData = scheduleData[activeDay];
+    // Edit mode — lets Emmanuel rebuild his schedule for a new semester
+    const [editMode, setEditMode] = useState(false);
+    const [scheduleTick, setScheduleTick] = useState(0);
+    const [customized, setCustomized] = useState(false);
+    const [dayOverridden, setDayOverridden] = useState(false);
+    const [editingBlockIndex, setEditingBlockIndex] = useState<number | null>(null);
+    const [addingBlock, setAddingBlock] = useState(false);
+    const [metaDraft, setMetaDraft] = useState({ courses: "", tag: "" });
+
+    const dayData = useMemo(() => {
+        void scheduleTick; // force recompute when a schedule edit is saved
+        return applyScheduleOverride(activeDay, scheduleData[activeDay]);
+    }, [activeDay, scheduleTick]);
+
+    useEffect(() => {
+        setCustomized(hasAnyScheduleOverride());
+        setDayOverridden(isDayOverridden(activeDay));
+        const onChange = () => {
+            setScheduleTick(t => t + 1);
+            setCustomized(hasAnyScheduleOverride());
+            setDayOverridden(isDayOverridden(activeDay));
+        };
+        window.addEventListener("schedule:custom-changed", onChange);
+        window.addEventListener("storage", onChange);
+        return () => {
+            window.removeEventListener("schedule:custom-changed", onChange);
+            window.removeEventListener("storage", onChange);
+        };
+    }, [activeDay]);
+
+    useEffect(() => {
+        setMetaDraft({ courses: dayData.courses, tag: dayData.tag });
+        setEditingBlockIndex(null);
+        setAddingBlock(false);
+    }, [activeDay, dayData.courses, dayData.tag]);
+
+    const saveDay = (patch: Partial<DayData>) => {
+        setDayOverride(activeDay, { ...dayData, ...patch });
+    };
+
+    const updateBlock = (index: number, patch: Partial<ScheduleBlock>) => {
+        const blocks = dayData.blocks.map((b, i) => (i === index ? { ...b, ...patch } : b));
+        saveDay({ blocks });
+        setEditingBlockIndex(null);
+    };
+
+    const removeBlock = (index: number) => {
+        const blocks = dayData.blocks.filter((_, i) => i !== index);
+        saveDay({ blocks });
+    };
+
+    const insertBlock = (block: ScheduleBlock) => {
+        const blocks = [...dayData.blocks, block].sort((a, b) => a.time.localeCompare(b.time));
+        saveDay({ blocks });
+        setAddingBlock(false);
+    };
 
     const catColors: Record<string, string> = {
         spirit: "border-gold text-gold bg-gold/5",
@@ -195,8 +251,42 @@ export default function SchedulePage() {
                 <div className="flex items-center gap-4">
                     <h1 className="text-3xl font-bebas tracking-wider">Weekly Schedule</h1>
                     <div className="h-px bg-border flex-1" />
+                    <button
+                        onClick={() => setEditMode(v => !v)}
+                        className={cn(
+                            "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-mono uppercase tracking-tighter transition-all border",
+                            editMode
+                                ? "bg-gold text-bg-dark border-gold font-bold"
+                                : "bg-bg-surface text-text-dim border-border hover:text-text-muted"
+                        )}
+                    >
+                        <Pencil className="w-3 h-3" />
+                        {editMode ? "Editing" : "Edit Schedule"}
+                    </button>
+                    {customized && (
+                        <button
+                            onClick={() => {
+                                if (confirm("Reset your whole week back to the default schedule? This clears every day you've customized.")) {
+                                    resetAllScheduleOverrides();
+                                }
+                            }}
+                            className="flex items-center gap-1.5 text-[9px] font-mono uppercase tracking-tighter text-text-dim hover:text-red transition-colors"
+                        >
+                            <RotateCcw className="w-3 h-3" />
+                            Reset week
+                        </button>
+                    )}
                     <span className="font-mono text-[10px] uppercase text-text-dim tracking-widest">3:00AM → 9:00PM</span>
                 </div>
+
+                {editMode && (
+                    <div className="flex items-start gap-3 p-4 bg-gold/5 border border-gold/20 rounded-2xl">
+                        <Pencil className="w-4 h-4 text-gold shrink-0 mt-0.5" />
+                        <p className="text-xs text-text-muted leading-relaxed">
+                            <span className="text-gold font-medium">Edit mode is on.</span> Edit the course line and tag for {activeDay}, then edit, remove, or add time blocks below. Everything saves per day on this device — go day by day when the new semester timetable comes in.
+                        </p>
+                    </div>
+                )}
 
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     {[
@@ -235,13 +325,46 @@ export default function SchedulePage() {
 
             <div className="relative">
                 <div className="bg-bg-surface border border-border border-l-4 border-l-gold rounded-xl p-6 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h2 className="font-bebas text-2xl tracking-tight text-text mb-1">{activeDay}DAY</h2>
-                        <p className="font-mono text-xs text-text-muted">{dayData.courses}</p>
+                    {editMode ? (
+                        <div className="flex-1 space-y-2">
+                            <h2 className="font-bebas text-2xl tracking-tight text-text mb-1">{activeDay}DAY</h2>
+                            <input
+                                value={metaDraft.courses}
+                                onChange={(e) => setMetaDraft(d => ({ ...d, courses: e.target.value }))}
+                                onBlur={() => saveDay({ courses: metaDraft.courses })}
+                                placeholder="Course line, e.g. COS202 (11AM–1PM)"
+                                className="w-full bg-bg-base border border-border-2 rounded-lg px-3 py-2 font-mono text-xs text-text-muted focus:border-gold outline-none"
+                            />
+                            <input
+                                value={metaDraft.tag}
+                                onChange={(e) => setMetaDraft(d => ({ ...d, tag: e.target.value }))}
+                                onBlur={() => saveDay({ tag: metaDraft.tag })}
+                                placeholder="Tag, e.g. 2 Lectures · Busy Day"
+                                className="w-full bg-bg-base border border-border-2 rounded-lg px-3 py-2 font-mono text-[10px] uppercase text-gold focus:border-gold outline-none"
+                            />
+                        </div>
+                    ) : (
+                        <div>
+                            <h2 className="font-bebas text-2xl tracking-tight text-text mb-1">{activeDay}DAY</h2>
+                            <p className="font-mono text-xs text-text-muted">{dayData.courses}</p>
+                        </div>
+                    )}
+                    <div className="flex items-center gap-3 self-start md:self-center">
+                        <span className="px-3 py-1 bg-gold/10 border border-gold/20 text-gold font-mono text-[10px] uppercase tracking-widest rounded-sm">
+                            {dayData.tag}
+                        </span>
+                        {editMode && dayOverridden && (
+                            <button
+                                onClick={() => {
+                                    if (confirm(`Reset ${activeDay} back to its default schedule?`)) resetDay(activeDay);
+                                }}
+                                className="text-text-dim hover:text-red transition-colors"
+                                title="Reset this day to default"
+                            >
+                                <RotateCcw className="w-4 h-4" />
+                            </button>
+                        )}
                     </div>
-                    <span className="px-3 py-1 bg-gold/10 border border-gold/20 text-gold font-mono text-[10px] uppercase tracking-widest rounded-sm self-start md:self-center">
-                        {dayData.tag}
-                    </span>
                 </div>
 
                 <div className="relative pl-12 md:pl-20 py-4">
@@ -268,29 +391,72 @@ export default function SchedulePage() {
                                             dotColors[block.cat]
                                         )} />
 
-                                        <div
-                                            className={cn(
-                                                "flex items-center gap-4 p-4 rounded-xl border transition-all hover:bg-bg-elevated/50 cursor-pointer group/block",
-                                                catColors[block.cat]
-                                            )}
-                                            onClick={() => initiateFocus(block.title, block.dur)}
-                                            title="Click to start focus timer"
-                                        >
-                                            <span className="font-serif text-lg">{block.emoji}</span>
-                                            <div className="flex-1">
-                                                <h4 className="font-mono text-xs font-semibold uppercase tracking-tight">{block.title}</h4>
-                                                <p className="font-mono text-[10px] text-current opacity-60">Duration: {block.dur}</p>
+                                        {editingBlockIndex === i ? (
+                                            <BlockEditForm
+                                                block={block}
+                                                onCancel={() => setEditingBlockIndex(null)}
+                                                onSave={(patch) => updateBlock(i, patch)}
+                                            />
+                                        ) : (
+                                            <div
+                                                className={cn(
+                                                    "flex items-center gap-4 p-4 rounded-xl border transition-all hover:bg-bg-elevated/50 group/block",
+                                                    catColors[block.cat],
+                                                    !editMode && "cursor-pointer"
+                                                )}
+                                                onClick={() => { if (!editMode) initiateFocus(block.title, block.dur); }}
+                                                title={editMode ? undefined : "Click to start focus timer"}
+                                            >
+                                                <span className="font-serif text-lg">{block.emoji}</span>
+                                                <div className="flex-1">
+                                                    <h4 className="font-mono text-xs font-semibold uppercase tracking-tight">{block.title}</h4>
+                                                    <p className="font-mono text-[10px] text-current opacity-60">Duration: {block.dur}</p>
+                                                </div>
+                                                {editMode ? (
+                                                    <div className="flex gap-2 shrink-0">
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); setEditingBlockIndex(i); }}
+                                                            className="w-7 h-7 rounded-lg border border-current/20 flex items-center justify-center hover:bg-current/10 transition-colors"
+                                                        >
+                                                            <Pencil className="w-3.5 h-3.5" />
+                                                        </button>
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); removeBlock(i); }}
+                                                            className="w-7 h-7 rounded-lg border border-current/20 flex items-center justify-center hover:bg-red/10 hover:text-red transition-colors"
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <Timer className="w-3.5 h-3.5 opacity-0 group-hover/block:opacity-40 transition-opacity shrink-0" />
+                                                )}
                                             </div>
-                                            <Timer className="w-3.5 h-3.5 opacity-0 group-hover/block:opacity-40 transition-opacity shrink-0" />
-                                        </div>
+                                        )}
                                     </div>
                                 ))}
 
                                 {dayData.blocks.length === 0 && (
                                     <div className="py-20 text-center">
                                         <Info className="w-8 h-8 text-text-dim mx-auto mb-4" />
-                                        <p className="font-serif italic text-text-muted">No blocks defined for this day in simulation.</p>
+                                        <p className="font-serif italic text-text-muted">No blocks defined for this day{editMode ? " yet." : " in simulation."}</p>
                                     </div>
+                                )}
+
+                                {editMode && (
+                                    addingBlock ? (
+                                        <BlockEditForm
+                                            block={emptyBlock()}
+                                            onCancel={() => setAddingBlock(false)}
+                                            onSave={insertBlock}
+                                        />
+                                    ) : (
+                                        <button
+                                            onClick={() => setAddingBlock(true)}
+                                            className="w-full py-3 border border-dashed border-border-2 rounded-xl flex items-center justify-center gap-2 font-mono text-[10px] uppercase tracking-widest text-text-dim hover:text-gold hover:border-gold transition-all"
+                                        >
+                                            <PlusCircle className="w-4 h-4" /> Add time block
+                                        </button>
+                                    )
                                 )}
                             </motion.div>
                         </AnimatePresence>
@@ -304,6 +470,72 @@ export default function SchedulePage() {
                     <h4 className="font-bebas text-lg text-red">Campus Commute</h4>
                     <p className="font-serif italic text-sm text-text-muted">🚌 First bus: 7:10–7:40AM · Arrive ~7:40AM. No exceptions. Arrive before the crowd.</p>
                 </div>
+            </div>
+        </div>
+    );
+}
+
+const CATEGORY_OPTIONS = ["spirit", "study", "code", "body", "transit", "lecture", "trade", "review", "sleep", "break", "style"];
+
+function BlockEditForm({ block, onSave, onCancel }: { block: ScheduleBlock; onSave: (patch: ScheduleBlock) => void; onCancel: () => void }) {
+    const [draft, setDraft] = useState<ScheduleBlock>({ ...block });
+
+    const submit = () => {
+        if (!draft.time.trim() || !draft.title.trim()) return;
+        onSave(draft);
+    };
+
+    return (
+        <div className="p-4 rounded-xl border border-gold/30 bg-gold/5 space-y-3">
+            <div className="flex gap-3">
+                <input
+                    value={draft.time}
+                    onChange={(e) => setDraft(d => ({ ...d, time: e.target.value }))}
+                    placeholder="Time, e.g. 7:00AM"
+                    className="w-1/2 bg-bg-base border border-border-2 rounded-lg px-3 py-2 font-mono text-xs text-text focus:border-gold outline-none"
+                />
+                <input
+                    value={draft.dur}
+                    onChange={(e) => setDraft(d => ({ ...d, dur: e.target.value }))}
+                    placeholder="Duration, e.g. 45m"
+                    className="w-1/2 bg-bg-base border border-border-2 rounded-lg px-3 py-2 font-mono text-xs text-text focus:border-gold outline-none"
+                />
+            </div>
+            <input
+                value={draft.title}
+                onChange={(e) => setDraft(d => ({ ...d, title: e.target.value }))}
+                placeholder="What's happening"
+                className="w-full bg-bg-base border border-border-2 rounded-lg px-3 py-2 font-mono text-xs text-text focus:border-gold outline-none"
+            />
+            <div className="flex gap-3">
+                <input
+                    value={draft.emoji}
+                    onChange={(e) => setDraft(d => ({ ...d, emoji: e.target.value }))}
+                    placeholder="Emoji"
+                    className="w-1/4 bg-bg-base border border-border-2 rounded-lg px-3 py-2 font-mono text-xs text-text text-center focus:border-gold outline-none"
+                />
+                <select
+                    value={draft.cat}
+                    onChange={(e) => setDraft(d => ({ ...d, cat: e.target.value }))}
+                    className="w-3/4 bg-bg-base border border-border-2 rounded-lg px-3 py-2 font-mono text-xs text-text uppercase focus:border-gold outline-none"
+                >
+                    {CATEGORY_OPTIONS.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+            </div>
+            <div className="flex gap-2 justify-end">
+                <button
+                    onClick={onCancel}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-mono uppercase tracking-widest text-text-dim border border-border hover:text-text"
+                >
+                    <X className="w-3.5 h-3.5" /> Cancel
+                </button>
+                <button
+                    onClick={submit}
+                    disabled={!draft.time.trim() || !draft.title.trim()}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-mono uppercase tracking-widest bg-gold text-bg-dark font-bold disabled:opacity-40"
+                >
+                    <Save className="w-3.5 h-3.5" /> Save
+                </button>
             </div>
         </div>
     );
