@@ -1,0 +1,115 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Backgrounds — layered dark (DEFAULT) */
+    --bg-base: #09090c;
+    --bg-surface: #0f0f14;
+    --bg-elevated: #16161e;
+    --bg-muted: #1c1c26;
+
+    /* Borders */
+    --border: #21212e;
+    --border-2: #2e2e3e;
+
+    /* Accent — Gold (primary brand) */
+    --gold: #c9962e;
+    --gold-light: #e8b84b;
+    --gold-dim: rgba(201, 150, 46, 0.12);
+
+    /* Semantic colors */
+    --blue: #4a8fd4;
+    --purple: #8e68c4;
+    --green: #3abf6a;
+    --red: #d94f4f;
+    --teal: #38bfb0;
+    --orange: #d47a2a;
+    --pink: #c45a8e;
+
+    /* Text */
+    --text: #d8d8e8;
+    --text-muted: #8888a8;
+    --text-dim: #5c5c78;
+
+    --radius: 0.5rem;
+  }
+
+  /* Light Theme Overrides */
+  .theme-light {
+    /* Backgrounds — layered light */
+    --bg-base: #f4f4f6;
+    --bg-surface: #ffffff;
+    --bg-elevated: #eaeaef;
+    --bg-muted: #dcdce2;
+
+    /* Borders */
+    --border: #dcdce2;
+    --border-2: #c4c4cd;
+
+    /* Accent — Gold stays but slightly darker for contrast on white */
+    --gold: #b38222;
+    --gold-light: #c9962e;
+    --gold-dim: rgba(179, 130, 34, 0.15);
+
+    /* Text */
+    --text: #1a1a24;
+    --text-muted: #46465c;
+    --text-dim: #6c6c84;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-bg-base text-foreground font-mono antialiased min-h-screen relative overflow-x-hidden;
+    font-size: 13px;
+  }
+
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stick-stitch='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 50;
+    mix-blend-mode: overlay;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-bebas uppercase tracking-wider;
+  }
+}
+
+/* Custom Grid Background for Overview */
+.grid-bg {
+  background-image: radial-gradient(var(--border) 1px, transparent 1px);
+  background-size: 30px 30px;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-bg-base;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-border-2 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted-foreground;
+}
