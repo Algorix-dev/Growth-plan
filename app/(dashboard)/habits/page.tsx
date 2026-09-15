@@ -138,7 +138,10 @@ export default function HabitsPage() {
                             <Award className="w-5 h-5 text-gold" />
                             <span className="font-mono text-[10px] text-gold uppercase tracking-[0.3em] opacity-80">Behavioral Architecture</span>
                         </div>
-                        <h1 className="text-5xl md:text-6xl font-bebas tracking-tight text-text">Habit <span className="text-gold">Tracker</span></h1>
+                        {/* TIP: only the displayed label changed here (Habit Tracker -> Checklist). */}
+                        {/* Routes, state vars, localStorage keys, and XP logic are untouched on purpose */}
+                        {/* so nothing else that depends on "/habits" or "initialHabits" breaks. */}
+                        <h1 className="text-5xl md:text-6xl font-bebas tracking-tight text-text">Life <span className="text-gold">Checklist</span></h1>
                     </div>
                     <div className="bg-bg-surface border border-border border-l-4 border-l-gold p-6 rounded-[2rem] shadow-sm">
                         <p className="font-serif italic text-sm text-text-muted leading-relaxed">

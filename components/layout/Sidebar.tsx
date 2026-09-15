@@ -22,7 +22,8 @@ import {
     Sparkles,
     Swords,
     Dumbbell,
-    Map
+    Map,
+    Library
 } from "lucide-react";
 import { ForgeLevelBadge } from "@/components/shared/ForgeLevelBadge";
 import { useState } from "react";
@@ -34,9 +35,12 @@ const navItems = [
     { label: "Overview", icon: LayoutDashboard, href: "/", section: "CORE" },
     { label: "Schedule", icon: Calendar, href: "/schedule", section: "CORE" },
     { label: "Goals", icon: Target, href: "/goals", section: "CORE" },
-    { label: "Habits", icon: CheckCircle2, href: "/habits", section: "TRACK" },
+    { label: "Checklist", icon: CheckCircle2, href: "/habits", section: "TRACK" },
+    { label: "Stats", icon: BarChart3, href: "/stats", section: "TRACK" },
     { label: "Courses", icon: BookOpen, href: "/courses", section: "TRACK" },
     { label: "Journal", icon: PenTool, href: "/journal", section: "TRACK" },
+    { label: "Roadmap", icon: Map, href: "/roadmap", section: "TRACK" },
+    { label: "Books", icon: Library, href: "/books", section: "TRACK" },
     { label: "Warrior Forge", icon: Dumbbell, href: "/workout", section: "EXECUTE" },
     { label: "Martial Arts", icon: Swords, href: "/martial-arts", section: "EXECUTE" },
     { label: "Trading Roadmap", icon: Map, href: "/trading-roadmap", section: "EXECUTE" },

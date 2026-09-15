@@ -339,7 +339,7 @@ export default function OverviewPage() {
             {/* Stats Grid */}
             <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 {[
-                    { label: "Habits Today", value: stats.habits, icon: CheckCircle2, color: "text-gold", action: null },
+                    { label: "Checklist Today", value: stats.habits, icon: CheckCircle2, color: "text-gold", action: null },
                     { label: "Burnout Risk", value: burnout.indicator, icon: Activity, color: burnout.indicator === 'Red' ? "text-red" : "text-green", action: null },
                     { label: "Identity State", value: identity, icon: Zap, color: "text-gold", action: null },
                     {

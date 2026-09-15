@@ -13,7 +13,7 @@ export function MobileNav() {
 
     const navItems = [
         { href: "/", icon: Home, label: "Home" },
-        { href: "/habits", icon: ClipboardList, label: "Habits" },
+        { href: "/habits", icon: ClipboardList, label: "Checklist" },
         { href: "/workout", icon: Dumbbell, label: "Training" },
         { href: "/trades", icon: LineChart, label: "Trades" },
         { href: "/analytics", icon: History, label: "Stats" },
