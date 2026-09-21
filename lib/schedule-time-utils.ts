@@ -30,3 +30,54 @@ export function timeToMinutes(time: string): number {
 export function sortBlocksChronologically(blocks: ScheduleBlock[]): ScheduleBlock[] {
     return [...blocks].sort((a, b) => timeToMinutes(a.time) - timeToMinutes(b.time));
 }
+
+/** Parses a duration string like "120m", "90m", "6h" into total minutes. */
+export function durationToMinutes(dur: string): number {
+    const hourMatch = dur.match(/(\d+)\s*h/i);
+    const minMatch = dur.match(/(\d+)\s*m/i);
+    let total = 0;
+    if (hourMatch) total += parseInt(hourMatch[1], 10) * 60;
+    if (minMatch) total += parseInt(minMatch[1], 10);
+    return total;
+}
+
+/** Formats minutes-since-midnight back into compact 12hr form: "11AM", "1:30PM". */
+export function minutesToCompactTime(mins: number): string {
+    const wrapped = ((mins % 1440) + 1440) % 1440; // handle any overflow safely
+    const h = Math.floor(wrapped / 60);
+    const m = wrapped % 60;
+    const meridian = h >= 12 ? "PM" : "AM";
+    let hour12 = h % 12;
+    if (hour12 === 0) hour12 = 12;
+    return m === 0 ? `${hour12}${meridian}` : `${hour12}:${m.toString().padStart(2, "0")}${meridian}`;
+}
+
+/**
+ * Reads whichever blocks are tagged cat: "lecture" and derives the day's
+ * course line and lecture-count tag from them — so the header always
+ * reflects the actual schedule instead of separately typed text that can
+ * drift out of sync with it.
+ */
+export function deriveLectureSummary(blocks: ScheduleBlock[]): { courses: string; tag: string } {
+    const lectures = blocks.filter((b) => b.cat === "lecture");
+
+    if (lectures.length === 0) {
+        return { courses: "No lectures", tag: "Free Day" };
+    }
+
+    const courses = lectures
+        .map((b) => {
+            const start = timeToMinutes(b.time);
+            const end = start + durationToMinutes(b.dur);
+            // "CUACOS311 — Interaction Design" -> "CUACOS311"
+            const code = b.title.split(/[—-]/)[0].trim();
+            return `${code} (${minutesToCompactTime(start)}–${minutesToCompactTime(end)})`;
+        })
+        .join(" · ");
+
+    const count = lectures.length;
+    const intensity = count === 1 ? "Focused Day" : count === 2 ? "Busy Day" : "Heaviest Day";
+    const tag = `${count} Lecture${count === 1 ? "" : "s"} · ${intensity}`;
+
+    return { courses, tag };
+}

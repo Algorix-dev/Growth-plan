@@ -1,4 +1,4 @@
-import { DayData, ScheduleBlock } from "./data";
+import { DayData, ScheduleBlock, CommuteInfo } from "./data";
 
 /**
  * Lets Emmanuel rebuild his weekly schedule from inside the app for a new
@@ -68,4 +68,21 @@ export function applyScheduleOverride(day: string, baseDay: DayData): DayData {
 
 export function emptyBlock(): ScheduleBlock {
     return { time: "", cat: "study", emoji: "📌", title: "", dur: "30m" };
+}
+
+const COMMUTE_KEY = "emmanuel_commute_override";
+
+export function getCommuteOverride(): CommuteInfo | null {
+    if (typeof window === "undefined") return null;
+    return safeParse<CommuteInfo | null>(localStorage.getItem(COMMUTE_KEY), null);
+}
+
+export function setCommuteOverride(commute: CommuteInfo) {
+    localStorage.setItem(COMMUTE_KEY, JSON.stringify(commute));
+    emitChange();
+}
+
+export function resetCommuteOverride() {
+    localStorage.removeItem(COMMUTE_KEY);
+    emitChange();
 }

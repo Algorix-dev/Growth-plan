@@ -4,10 +4,10 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { MapPin, Info, Timer, Play, Pause, StopCircle, Pencil, Trash2, Save, X, PlusCircle, RotateCcw } from "lucide-react";
-import { scheduleData, days, ScheduleBlock, DayData } from "@/lib/data";
+import { scheduleData, days, ScheduleBlock, DayData, CommuteInfo, defaultCommute } from "@/lib/data";
 import { awardXP } from "@/components/shared/ForgeLevelBadge";
-import { applyScheduleOverride, setDayOverride, resetDay, resetAllScheduleOverrides, hasAnyScheduleOverride, isDayOverridden, emptyBlock } from "@/lib/schedule-overrides";
-import { sortBlocksChronologically } from "@/lib/schedule-time-utils";
+import { applyScheduleOverride, setDayOverride, resetDay, resetAllScheduleOverrides, hasAnyScheduleOverride, isDayOverridden, emptyBlock, getCommuteOverride, setCommuteOverride } from "@/lib/schedule-overrides";
+import { sortBlocksChronologically, deriveLectureSummary } from "@/lib/schedule-time-utils";
 
 export default function SchedulePage() {
     const [activeDay, setActiveDay] = useState(() => {
@@ -24,7 +24,8 @@ export default function SchedulePage() {
     const [dayOverridden, setDayOverridden] = useState(false);
     const [editingBlockIndex, setEditingBlockIndex] = useState<number | null>(null);
     const [addingBlock, setAddingBlock] = useState(false);
-    const [metaDraft, setMetaDraft] = useState({ courses: "", tag: "" });
+    const [commute, setCommute] = useState<CommuteInfo>(defaultCommute);
+    const [commuteDraft, setCommuteDraft] = useState<CommuteInfo>(defaultCommute);
     const [importOpen, setImportOpen] = useState(false);
     const [importText, setImportText] = useState("");
     const [importError, setImportError] = useState<string | null>(null);
@@ -34,13 +35,22 @@ export default function SchedulePage() {
         return applyScheduleOverride(activeDay, scheduleData[activeDay]);
     }, [activeDay, scheduleTick]);
 
+    const lectureSummary = useMemo(() => deriveLectureSummary(dayData.blocks), [dayData.blocks]);
+
     useEffect(() => {
+        const loadCommute = () => {
+            const c = getCommuteOverride() || defaultCommute;
+            setCommute(c);
+            setCommuteDraft(c);
+        };
+        loadCommute();
         setCustomized(hasAnyScheduleOverride());
         setDayOverridden(isDayOverridden(activeDay));
         const onChange = () => {
             setScheduleTick(t => t + 1);
             setCustomized(hasAnyScheduleOverride());
             setDayOverridden(isDayOverridden(activeDay));
+            loadCommute();
         };
         window.addEventListener("schedule:custom-changed", onChange);
         window.addEventListener("storage", onChange);
@@ -51,13 +61,16 @@ export default function SchedulePage() {
     }, [activeDay]);
 
     useEffect(() => {
-        setMetaDraft({ courses: dayData.courses, tag: dayData.tag });
         setEditingBlockIndex(null);
         setAddingBlock(false);
-    }, [activeDay, dayData.courses, dayData.tag]);
+    }, [activeDay]);
 
     const saveDay = (patch: Partial<DayData>) => {
         setDayOverride(activeDay, { ...dayData, ...patch });
+    };
+
+    const saveCommute = (patch: Partial<CommuteInfo>) => {
+        setCommuteOverride({ ...commuteDraft, ...patch });
     };
 
     const updateBlock = (index: number, patch: Partial<ScheduleBlock>) => {
@@ -83,10 +96,18 @@ export default function SchedulePage() {
             Object.entries(parsed).forEach(([day, blocksToAdd]) => {
                 if (!days.includes(day)) return;
                 const base = applyScheduleOverride(day, scheduleData[day]);
-                const merged = sortBlocksChronologically([...base.blocks, ...blocksToAdd]);
+
+                // Key existing blocks by time, then let incoming blocks at the
+                // same time overwrite them — re-importing a block at "11:00AM"
+                // replaces whatever was there instead of duplicating it.
+                const byTime = new Map<string, ScheduleBlock>();
+                base.blocks.forEach((b) => byTime.set(b.time, b));
+                blocksToAdd.forEach((b) => byTime.set(b.time, b));
+
+                const merged = sortBlocksChronologically(Array.from(byTime.values()));
                 setDayOverride(day, { ...base, blocks: merged });
             });
-            setScheduleTick(t => t + 1);
+            setScheduleTick((t) => t + 1);
             setImportText("");
             setImportOpen(false);
             setImportError(null);
@@ -285,42 +306,6 @@ export default function SchedulePage() {
                         <Pencil className="w-3 h-3" />
                         {editMode ? "Editing" : "Edit Schedule"}
                     </button>
-                    <button
-                        onClick={() => setImportOpen(o => !o)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[9px] font-mono uppercase tracking-tighter border border-border-2 text-text-dim hover:text-gold hover:border-gold transition-all"
-                    >
-                        Import JSON
-                    </button>
-
-                    {importOpen && (
-                        <div className="p-4 rounded-xl border border-gold/30 bg-gold/5 space-y-3 mt-3">
-                            <p className="font-mono text-[10px] text-text-dim uppercase tracking-widest">
-                                {`Paste a JSON object keyed by day (MON–SUN), each holding an array of blocks. It merges into {what's already there and auto-sorts by time.}`}
-                            </p>
-                            <textarea
-                                value={importText}
-                                onChange={(e) => setImportText(e.target.value)}
-                                rows={8}
-                                placeholder='{"MON": [{"time": "11:00AM", "cat": "lecture", "emoji": "🏫", "title": "...", "dur": "120m"}]}'
-                                className="w-full bg-bg-base border border-border-2 rounded-lg px-3 py-2 font-mono text-xs text-text focus:border-gold outline-none"
-                            />
-                            {importError && <p className="text-xs text-red font-mono">{importError}</p>}
-                            <div className="flex gap-2 justify-end">
-                                <button
-                                    onClick={() => { setImportOpen(false); setImportError(null); }}
-                                    className="px-4 py-2 rounded-xl text-xs font-mono uppercase tracking-widest text-text-dim border border-border hover:text-text"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={applyImport}
-                                    className="px-4 py-2 rounded-xl text-xs font-mono uppercase tracking-widest bg-gold text-bg-dark font-bold"
-                                >
-                                    Apply Import
-                                </button>
-                            </div>
-                        </div>
-                    )}
                     {customized && (
                         <button
                             onClick={() => {
@@ -334,31 +319,96 @@ export default function SchedulePage() {
                             Reset week
                         </button>
                     )}
+                    <button
+                        onClick={() => setImportOpen(o => !o)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-mono uppercase tracking-tighter border border-border text-text-dim hover:text-gold hover:border-gold transition-colors"
+                    >
+                        <PlusCircle className="w-3 h-3" />
+                        Import JSON
+                    </button>
                     <span className="font-mono text-[10px] uppercase text-text-dim tracking-widest">3:00AM → 9:00PM</span>
                 </div>
+
+                {importOpen && (
+                    <div className="p-4 rounded-xl border border-gold/30 bg-gold/5 space-y-3">
+                        <p className="font-mono text-[10px] text-text-dim uppercase tracking-widest">
+                            {`Paste a JSON object keyed by day (MON-SUN), each holding an array of blocks. Blocks at a time that already exists replace it; everything else merges in and re-sorts.`}
+                        </p>
+                        <textarea
+                            value={importText}
+                            onChange={(e) => setImportText(e.target.value)}
+                            rows={8}
+                            placeholder='{"MON": [{"time": "11:00AM", "cat": "lecture", "emoji": "🏫", "title": "...", "dur": "120m"}]}'
+                            className="w-full bg-bg-base border border-border-2 rounded-lg px-3 py-2 font-mono text-xs text-text focus:border-gold outline-none"
+                        />
+                        {importError && <p className="text-xs text-red font-mono">{importError}</p>}
+                        <div className="flex gap-2 justify-end">
+                            <button
+                                onClick={() => { setImportOpen(false); setImportError(null); }}
+                                className="px-4 py-2 rounded-xl text-xs font-mono uppercase tracking-widest text-text-dim border border-border hover:text-text"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={applyImport}
+                                className="px-4 py-2 rounded-xl text-xs font-mono uppercase tracking-widest bg-gold text-bg-dark font-bold"
+                            >
+                                Apply Import
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 {editMode && (
                     <div className="flex items-start gap-3 p-4 bg-gold/5 border border-gold/20 rounded-2xl">
                         <Pencil className="w-4 h-4 text-gold shrink-0 mt-0.5" />
                         <p className="text-xs text-text-muted leading-relaxed">
-                            <span className="text-gold font-medium">Edit mode is on.</span> Edit the course line and tag for {activeDay}, then edit, remove, or add time blocks below. Everything saves per day on this device — go day by day when the new semester timetable comes in.
+                            <span className="text-gold font-medium">Edit mode is on.</span> The course line and lecture count above are read automatically from any block tagged &quot;Lecture&quot; below — add, edit, or remove time blocks and the header updates itself. Everything saves per day on this device.
                         </p>
                     </div>
                 )}
 
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    {[
-                        { label: "Bus Departs", val: "7:10–7:40", sub: "Take the first bus" },
-                        { label: "Campus Arrival", val: "~7:40AM", sub: "~30 min commute" },
-                        { label: "Secret Rule", val: "3AM", sub: "Build before the world wakes" },
-                        { label: "Status", val: "Locked In", sub: "Forging Phase Active" },
-                    ].map((item) => (
-                        <div key={item.label} className="bg-bg-surface border border-border p-4 rounded-lg">
-                            <p className="font-mono text-[9px] uppercase tracking-widest text-text-muted mb-1">{item.label}</p>
-                            <p className="font-bebas text-xl text-text">{item.val}</p>
-                            <p className="font-mono text-[9px] text-text-dim">{item.sub}</p>
-                        </div>
-                    ))}
+                    <div className="bg-bg-surface border border-border p-4 rounded-lg">
+                        <p className="font-mono text-[9px] uppercase tracking-widest text-text-muted mb-1">Bus Departs</p>
+                        {editMode ? (
+                            <input
+                                value={commuteDraft.busDeparts}
+                                onChange={(e) => setCommuteDraft(d => ({ ...d, busDeparts: e.target.value }))}
+                                onBlur={() => saveCommute({ busDeparts: commuteDraft.busDeparts })}
+                                placeholder="e.g. 8:00–8:40"
+                                className="w-full bg-bg-base border border-border-2 rounded-lg px-2 py-1 font-bebas text-lg text-text focus:border-gold outline-none"
+                            />
+                        ) : (
+                            <p className="font-bebas text-xl text-text">{commute.busDeparts}</p>
+                        )}
+                        <p className="font-mono text-[9px] text-text-dim">Take the first bus</p>
+                    </div>
+                    <div className="bg-bg-surface border border-border p-4 rounded-lg">
+                        <p className="font-mono text-[9px] uppercase tracking-widest text-text-muted mb-1">Campus Arrival</p>
+                        {editMode ? (
+                            <input
+                                value={commuteDraft.campusArrival}
+                                onChange={(e) => setCommuteDraft(d => ({ ...d, campusArrival: e.target.value }))}
+                                onBlur={() => saveCommute({ campusArrival: commuteDraft.campusArrival })}
+                                placeholder="e.g. ~8:40AM"
+                                className="w-full bg-bg-base border border-border-2 rounded-lg px-2 py-1 font-bebas text-lg text-text focus:border-gold outline-none"
+                            />
+                        ) : (
+                            <p className="font-bebas text-xl text-text">{commute.campusArrival}</p>
+                        )}
+                        <p className="font-mono text-[9px] text-text-dim">~30 min commute</p>
+                    </div>
+                    <div className="bg-bg-surface border border-border p-4 rounded-lg">
+                        <p className="font-mono text-[9px] uppercase tracking-widest text-text-muted mb-1">Secret Rule</p>
+                        <p className="font-bebas text-xl text-text">3AM</p>
+                        <p className="font-mono text-[9px] text-text-dim">Build before the world wakes</p>
+                    </div>
+                    <div className="bg-bg-surface border border-border p-4 rounded-lg">
+                        <p className="font-mono text-[9px] uppercase tracking-widest text-text-muted mb-1">Status</p>
+                        <p className="font-bebas text-xl text-text">Locked In</p>
+                        <p className="font-mono text-[9px] text-text-dim">Forging Phase Active</p>
+                    </div>
                 </div>
             </header>
 
@@ -383,33 +433,18 @@ export default function SchedulePage() {
 
             <div className="relative">
                 <div className="bg-bg-surface border border-border border-l-4 border-l-gold rounded-xl p-6 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    {editMode ? (
-                        <div className="flex-1 space-y-2">
-                            <h2 className="font-bebas text-2xl tracking-tight text-text mb-1">{activeDay}DAY</h2>
-                            <input
-                                value={metaDraft.courses}
-                                onChange={(e) => setMetaDraft(d => ({ ...d, courses: e.target.value }))}
-                                onBlur={() => saveDay({ courses: metaDraft.courses })}
-                                placeholder="Course line, e.g. COS202 (11AM–1PM)"
-                                className="w-full bg-bg-base border border-border-2 rounded-lg px-3 py-2 font-mono text-xs text-text-muted focus:border-gold outline-none"
-                            />
-                            <input
-                                value={metaDraft.tag}
-                                onChange={(e) => setMetaDraft(d => ({ ...d, tag: e.target.value }))}
-                                onBlur={() => saveDay({ tag: metaDraft.tag })}
-                                placeholder="Tag, e.g. 2 Lectures · Busy Day"
-                                className="w-full bg-bg-base border border-border-2 rounded-lg px-3 py-2 font-mono text-[10px] uppercase text-gold focus:border-gold outline-none"
-                            />
-                        </div>
-                    ) : (
-                        <div>
-                            <h2 className="font-bebas text-2xl tracking-tight text-text mb-1">{activeDay}DAY</h2>
-                            <p className="font-mono text-xs text-text-muted">{dayData.courses}</p>
-                        </div>
-                    )}
+                    <div>
+                        <h2 className="font-bebas text-2xl tracking-tight text-text mb-1">{activeDay}DAY</h2>
+                        <p className="font-mono text-xs text-text-muted">{lectureSummary.courses}</p>
+                        {editMode && (
+                            <p className="font-mono text-[9px] text-text-dim mt-1">
+                                {`Read from blocks tagged "lecture" below — set a block's category to Lecture to have it counted here.`}
+                            </p>
+                        )}
+                    </div>
                     <div className="flex items-center gap-3 self-start md:self-center">
                         <span className="px-3 py-1 bg-gold/10 border border-gold/20 text-gold font-mono text-[10px] uppercase tracking-widest rounded-sm">
-                            {dayData.tag}
+                            {lectureSummary.tag}
                         </span>
                         {editMode && dayOverridden && (
                             <button
@@ -524,9 +559,21 @@ export default function SchedulePage() {
 
             <div className="bg-bg-surface border border-red/20 border-l-4 border-l-red p-6 rounded-xl flex items-center gap-4">
                 <MapPin className="text-red w-5 h-5" />
-                <div>
+                <div className="flex-1">
                     <h4 className="font-bebas text-lg text-red">Campus Commute</h4>
-                    <p className="font-serif italic text-sm text-text-muted">🚌 First bus: 7:10–7:40AM · Arrive ~7:40AM. No exceptions. Arrive before the crowd.</p>
+                    {editMode ? (
+                        <input
+                            value={commuteDraft.note}
+                            onChange={(e) => setCommuteDraft(d => ({ ...d, note: e.target.value }))}
+                            onBlur={() => saveCommute({ note: commuteDraft.note })}
+                            placeholder="e.g. No exceptions. Arrive before the crowd."
+                            className="w-full mt-1 bg-bg-base border border-border-2 rounded-lg px-3 py-2 font-serif italic text-sm text-text-muted focus:border-gold outline-none"
+                        />
+                    ) : (
+                        <p className="font-serif italic text-sm text-text-muted">
+                            {`🚌 First bus: ${commute.busDeparts}AM · Arrive ${commute.campusArrival}. ${commute.note}`}
+                        </p>
+                    )}
                 </div>
             </div>
         </div>
