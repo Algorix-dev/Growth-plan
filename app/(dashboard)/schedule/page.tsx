@@ -295,7 +295,7 @@ export default function SchedulePage() {
                     {importOpen && (
                         <div className="p-4 rounded-xl border border-gold/30 bg-gold/5 space-y-3 mt-3">
                             <p className="font-mono text-[10px] text-text-dim uppercase tracking-widest">
-                                {`Paste a JSON object keyed by day (MON–SUN), each holding an array of blocks. It merges into what's already there and auto-sorts by time.`}
+                                {`Paste a JSON object keyed by day (MON–SUN), each holding an array of blocks. It merges into {what's already there and auto-sorts by time.}`}
                             </p>
                             <textarea
                                 value={importText}
