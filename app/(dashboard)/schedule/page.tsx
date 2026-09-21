@@ -287,7 +287,7 @@ export default function SchedulePage() {
                     </button>
                     <button
                         onClick={() => setImportOpen(o => !o)}
-                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-mono uppercase tracking-widest border border-border-2 text-text-dim hover:text-gold hover:border-gold transition-colors"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[9px] font-mono uppercase tracking-tighter border border-border-2 text-text-dim hover:text-gold hover:border-gold transition-all"
                     >
                         Import JSON
                     </button>
