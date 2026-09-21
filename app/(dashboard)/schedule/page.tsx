@@ -7,6 +7,7 @@ import { MapPin, Info, Timer, Play, Pause, StopCircle, Pencil, Trash2, Save, X, 
 import { scheduleData, days, ScheduleBlock, DayData } from "@/lib/data";
 import { awardXP } from "@/components/shared/ForgeLevelBadge";
 import { applyScheduleOverride, setDayOverride, resetDay, resetAllScheduleOverrides, hasAnyScheduleOverride, isDayOverridden, emptyBlock } from "@/lib/schedule-overrides";
+import { sortBlocksChronologically } from "@/lib/schedule-time-utils";
 
 export default function SchedulePage() {
     const [activeDay, setActiveDay] = useState(() => {
@@ -24,6 +25,9 @@ export default function SchedulePage() {
     const [editingBlockIndex, setEditingBlockIndex] = useState<number | null>(null);
     const [addingBlock, setAddingBlock] = useState(false);
     const [metaDraft, setMetaDraft] = useState({ courses: "", tag: "" });
+    const [importOpen, setImportOpen] = useState(false);
+    const [importText, setImportText] = useState("");
+    const [importError, setImportError] = useState<string | null>(null);
 
     const dayData = useMemo(() => {
         void scheduleTick; // force recompute when a schedule edit is saved
@@ -57,7 +61,7 @@ export default function SchedulePage() {
     };
 
     const updateBlock = (index: number, patch: Partial<ScheduleBlock>) => {
-        const blocks = dayData.blocks.map((b, i) => (i === index ? { ...b, ...patch } : b));
+        const blocks = sortBlocksChronologically(dayData.blocks.map((b, i) => (i === index ? { ...b, ...patch } : b)));
         saveDay({ blocks });
         setEditingBlockIndex(null);
     };
@@ -68,9 +72,27 @@ export default function SchedulePage() {
     };
 
     const insertBlock = (block: ScheduleBlock) => {
-        const blocks = [...dayData.blocks, block].sort((a, b) => a.time.localeCompare(b.time));
+        const blocks = sortBlocksChronologically([...dayData.blocks, block]);
         saveDay({ blocks });
         setAddingBlock(false);
+    };
+
+    const applyImport = () => {
+        try {
+            const parsed = JSON.parse(importText) as Record<string, ScheduleBlock[]>;
+            Object.entries(parsed).forEach(([day, blocksToAdd]) => {
+                if (!days.includes(day)) return;
+                const base = applyScheduleOverride(day, scheduleData[day]);
+                const merged = sortBlocksChronologically([...base.blocks, ...blocksToAdd]);
+                setDayOverride(day, { ...base, blocks: merged });
+            });
+            setScheduleTick(t => t + 1);
+            setImportText("");
+            setImportOpen(false);
+            setImportError(null);
+        } catch {
+            setImportError("That's not valid JSON — check for missing commas or quotes and try again.");
+        }
     };
 
     const catColors: Record<string, string> = {
@@ -263,6 +285,42 @@ export default function SchedulePage() {
                         <Pencil className="w-3 h-3" />
                         {editMode ? "Editing" : "Edit Schedule"}
                     </button>
+                    <button
+                        onClick={() => setImportOpen(o => !o)}
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-mono uppercase tracking-widest border border-border-2 text-text-dim hover:text-gold hover:border-gold transition-colors"
+                    >
+                        Import JSON
+                    </button>
+
+                    {importOpen && (
+                        <div className="p-4 rounded-xl border border-gold/30 bg-gold/5 space-y-3 mt-3">
+                            <p className="font-mono text-[10px] text-text-dim uppercase tracking-widest">
+                                Paste a JSON object keyed by day (MON–SUN), each holding an array of blocks. It merges into what's already there and auto-sorts by time.
+                            </p>
+                            <textarea
+                                value={importText}
+                                onChange={(e) => setImportText(e.target.value)}
+                                rows={8}
+                                placeholder='{"MON": [{"time": "11:00AM", "cat": "lecture", "emoji": "🏫", "title": "...", "dur": "120m"}]}'
+                                className="w-full bg-bg-base border border-border-2 rounded-lg px-3 py-2 font-mono text-xs text-text focus:border-gold outline-none"
+                            />
+                            {importError && <p className="text-xs text-red font-mono">{importError}</p>}
+                            <div className="flex gap-2 justify-end">
+                                <button
+                                    onClick={() => { setImportOpen(false); setImportError(null); }}
+                                    className="px-4 py-2 rounded-xl text-xs font-mono uppercase tracking-widest text-text-dim border border-border hover:text-text"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={applyImport}
+                                    className="px-4 py-2 rounded-xl text-xs font-mono uppercase tracking-widest bg-gold text-bg-dark font-bold"
+                                >
+                                    Apply Import
+                                </button>
+                            </div>
+                        </div>
+                    )}
                     {customized && (
                         <button
                             onClick={() => {
