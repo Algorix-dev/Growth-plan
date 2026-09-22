@@ -58,6 +58,7 @@ export default function CoursesPage() {
     const [newCourseCode, setNewCourseCode] = useState("");
     const [newCourseName, setNewCourseName] = useState("");
     const [newCourseCategory, setNewCourseCategory] = useState("tech");
+    const [newCourseUnits, setNewCourseUnits] = useState("2");
     const [newCourseColor, setNewCourseColor] = useState("#8e68c4");
 
     useEffect(() => {
@@ -123,12 +124,15 @@ export default function CoursesPage() {
     const addCourse = () => {
         if (!newCourseCode.trim() || !newCourseName.trim()) return;
 
+        const units = parseInt(newCourseUnits, 10);
+
         const newCourse: Course = {
             id: `custom-${Date.now()}`,
             code: newCourseCode.trim().toUpperCase(),
             name: newCourseName.trim(),
             color: newCourseColor,
             category: newCourseCategory,
+            units: isNaN(units) || units <= 0 ? 2 : units,
             topics: [],
             scores: []
         };
@@ -137,6 +141,7 @@ export default function CoursesPage() {
         setNewCourseCode("");
         setNewCourseName("");
         setNewCourseCategory("tech");
+        setNewCourseUnits("2");
         setNewCourseColor("#8e68c4");
         setCourseModalOpen(false);
     };
@@ -147,22 +152,55 @@ export default function CoursesPage() {
         if (expanded === courseId) setExpanded(null);
     };
 
-    // Live GPA Estimate: based on ACTUAL scores entered, assuming equal weight for now.
-    // If a course has no scores, it falls back to 0.
+    // Live GPA Estimate: credit-unit weighted, based on ACTUAL scores entered.
+    // A 3-unit course counts 1.5x as much as a 2-unit course toward the average —
+    // this is how a real CGPA is computed, not a flat average across courses.
     const coursesWithScores = courses.filter(c => c.scores.length > 0);
     let gpa = "0.00";
+    const totalUnitsWithScores = coursesWithScores.reduce((acc, c) => acc + c.units, 0);
 
-    if (coursesWithScores.length > 0) {
+    if (totalUnitsWithScores > 0) {
         const totalPoints = coursesWithScores.reduce((acc, c) => {
-            // Sum up scores. Typically CA is 30, Exam is 70 = 100.
-            // If they enter multiple, we sum them capped at 100 for the final grade calculation.
             const totalScore = Math.min(c.scores.reduce((sum, s) => sum + s.value, 0), 100);
-            return acc + getGradePoint(totalScore);
+            return acc + getGradePoint(totalScore) * c.units;
         }, 0);
 
-        const calcGpa = (totalPoints / coursesWithScores.length);
-        gpa = calcGpa.toFixed(2);
+        gpa = (totalPoints / totalUnitsWithScores).toFixed(2);
     }
+
+    // GPA Calculator modal state
+    const [calcOpen, setCalcOpen] = useState(false);
+    const [calcMode, setCalcMode] = useState<"semester" | "cumulative">("semester");
+    const [calcRows, setCalcRows] = useState<{ courseId: string; score: string }[]>([]);
+    const [prevCgpa, setPrevCgpa] = useState("");
+    const [prevUnits, setPrevUnits] = useState("");
+
+    useEffect(() => {
+        if (calcOpen && calcRows.length === 0) {
+            setCalcRows(courses.map(c => ({ courseId: c.id, score: "" })));
+        }
+    }, [calcOpen]);
+
+    const calcUnitsTotal = calcRows.reduce((acc, row) => {
+        const course = courses.find(c => c.id === row.courseId);
+        return course && row.score !== "" ? acc + course.units : acc;
+    }, 0);
+
+    const calcPointsTotal = calcRows.reduce((acc, row) => {
+        const course = courses.find(c => c.id === row.courseId);
+        const score = parseFloat(row.score);
+        if (!course || row.score === "" || isNaN(score)) return acc;
+        return acc + getGradePoint(Math.min(Math.max(score, 0), 100)) * course.units;
+    }, 0);
+
+    const calcSemesterGpa = calcUnitsTotal > 0 ? (calcPointsTotal / calcUnitsTotal).toFixed(2) : "0.00";
+
+    const prevCgpaNum = parseFloat(prevCgpa);
+    const prevUnitsNum = parseFloat(prevUnits);
+    const hasValidPrev = !isNaN(prevCgpaNum) && !isNaN(prevUnitsNum) && prevUnitsNum > 0;
+    const calcCumulativeGpa = hasValidPrev && (calcUnitsTotal + prevUnitsNum) > 0
+        ? (((prevCgpaNum * prevUnitsNum) + calcPointsTotal) / (prevUnitsNum + calcUnitsTotal)).toFixed(2)
+        : null;
 
     if (!loaded) return null;
 
@@ -193,6 +231,12 @@ export default function CoursesPage() {
                     </button>
                     <button className="p-2 bg-bg-surface border border-border rounded-lg text-text-muted hover:text-text transition-all">
                         <LayoutGrid className="w-4 h-4" />
+                    </button>
+                    <button
+                        onClick={() => setCalcOpen(true)}
+                        className="flex items-center gap-2 px-3 py-2 bg-blue/10 border border-blue/30 rounded-lg text-blue hover:bg-blue/20 transition-all font-mono text-[10px] uppercase tracking-widest"
+                    >
+                        <GraduationCap className="w-4 h-4" /> GPA Calculator
                     </button>
                     <button
                         onClick={() => setCourseModalOpen(true)}
@@ -227,7 +271,7 @@ export default function CoursesPage() {
                             <div className="p-6">
                                 <div className="flex items-start justify-between mb-4">
                                     <div>
-                                        <p className="font-mono text-[10px] uppercase tracking-widest text-text-dim mb-1">{course.code} · {course.category}</p>
+                                        <p className="font-mono text-[10px] uppercase tracking-widest text-text-dim mb-1">{course.code} · {course.units} Units · {course.category}</p>
                                         <h3 className="text-xl font-bebas leading-none">{course.name}</h3>
                                     </div>
                                     <div className="flex items-start gap-3">
@@ -371,10 +415,10 @@ export default function CoursesPage() {
                 <div className="bg-bg-surface border border-border p-6 rounded-xl flex items-center gap-4">
                     <GraduationCap className="text-gold w-8 h-8" />
                     <div>
-                        <h4 className="font-bebas text-xl">GPA Target</h4>
+                        <h4 className="font-bebas text-xl">Live GPA</h4>
                         <div className="flex items-center gap-2">
-                            <span className="text-2xl font-bebas text-green">5.00</span>
-                            <span className="font-mono text-[10px] text-text-dim uppercase tracking-widest">Current Semester</span>
+                            <span className={`text-2xl font-bebas ${parseFloat(gpa) >= 4.5 ? 'text-green' : parseFloat(gpa) >= 3.5 ? 'text-gold' : 'text-red'}`}>{gpa}</span>
+                            <span className="font-mono text-[10px] text-text-dim uppercase tracking-widest">Target 5.00</span>
                         </div>
                     </div>
                 </div>
@@ -521,6 +565,18 @@ export default function CoursesPage() {
                                     </select>
                                 </div>
                                 <div>
+                                    <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-dim block mb-2">Credit Units</label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max="6"
+                                        value={newCourseUnits}
+                                        onChange={(e) => setNewCourseUnits(e.target.value)}
+                                        placeholder="e.g. 3"
+                                        className="w-full bg-bg-base border border-border-2 rounded-lg px-4 py-3 font-bebas text-xl tracking-widest focus:border-gold outline-none"
+                                    />
+                                </div>
+                                <div>
                                     <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-dim block mb-2">Accent Color</label>
                                     <div className="flex gap-2">
                                         {["#8e68c4", "#4a8fd4", "#3abf6a", "#d47a2a", "#c45a8e", "#38bfb0"].map(c => (
@@ -541,6 +597,125 @@ export default function CoursesPage() {
                                     Add Course
                                 </button>
                             </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+            {/* GPA Calculator Modal */}
+            <AnimatePresence>
+                {calcOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="bg-bg-surface border border-blue/30 rounded-2xl p-6 w-full max-w-lg relative max-h-[85vh] overflow-y-auto"
+                        >
+                            <button
+                                onClick={() => setCalcOpen(false)}
+                                className="absolute top-4 right-4 text-text-muted hover:text-white"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                            <h3 className="font-bebas text-2xl mb-2 text-blue">GPA Calculator</h3>
+                            <p className="font-mono text-[10px] text-text-dim uppercase tracking-widest mb-4 border-b border-border/50 pb-4">
+                                Simulate a grade per course — doesn&apos;t touch your saved scores
+                            </p>
+
+                            <div className="flex gap-2 mb-4">
+                                <button
+                                    onClick={() => setCalcMode("semester")}
+                                    className={cn("flex-1 py-2 rounded-lg font-mono text-[10px] uppercase tracking-widest border", calcMode === "semester" ? "bg-blue/10 border-blue text-blue" : "border-border-2 text-text-dim")}
+                                >
+                                    Semester GPA
+                                </button>
+                                <button
+                                    onClick={() => setCalcMode("cumulative")}
+                                    className={cn("flex-1 py-2 rounded-lg font-mono text-[10px] uppercase tracking-widest border", calcMode === "cumulative" ? "bg-blue/10 border-blue text-blue" : "border-border-2 text-text-dim")}
+                                >
+                                    Cumulative CGPA
+                                </button>
+                            </div>
+
+                            {calcMode === "cumulative" && (
+                                <div className="grid grid-cols-2 gap-3 mb-4 p-3 bg-bg-base border border-border-2 rounded-lg">
+                                    <div>
+                                        <label className="font-mono text-[9px] uppercase tracking-widest text-text-dim block mb-1">Previous CGPA</label>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            min="0"
+                                            max="5"
+                                            value={prevCgpa}
+                                            onChange={(e) => setPrevCgpa(e.target.value)}
+                                            placeholder="e.g. 4.10"
+                                            className="w-full bg-bg-surface border border-border-2 rounded-lg px-3 py-2 font-bebas text-lg focus:border-blue outline-none"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="font-mono text-[9px] uppercase tracking-widest text-text-dim block mb-1">Previous Total Units</label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            value={prevUnits}
+                                            onChange={(e) => setPrevUnits(e.target.value)}
+                                            placeholder="e.g. 45"
+                                            className="w-full bg-bg-surface border border-border-2 rounded-lg px-3 py-2 font-bebas text-lg focus:border-blue outline-none"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="space-y-2 mb-4">
+                                {courses.map((course) => {
+                                    const row = calcRows.find(r => r.courseId === course.id);
+                                    return (
+                                        <div key={course.id} className="flex items-center gap-3 p-2 bg-bg-base border border-border-2 rounded-lg">
+                                            <div className="flex-1 min-w-0">
+                                                <p className="font-mono text-[10px] uppercase text-text truncate">{course.code}</p>
+                                                <p className="font-mono text-[9px] text-text-dim">{course.units} Units</p>
+                                            </div>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="100"
+                                                value={row?.score ?? ""}
+                                                onChange={(e) => setCalcRows(rows => rows.map(r => r.courseId === course.id ? { ...r, score: e.target.value } : r))}
+                                                placeholder="Score"
+                                                className="w-20 bg-bg-surface border border-border-2 rounded-lg px-2 py-1 font-bebas text-lg text-center focus:border-blue outline-none"
+                                            />
+                                            <span className={cn("font-bebas text-sm w-8 text-center", row?.score ? "text-gold" : "text-text-dim")}>
+                                                {row?.score !== "" && !isNaN(parseFloat(row?.score ?? "")) ? getGradeLetter(parseFloat(row!.score)) : "—"}
+                                            </span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            <div className="p-4 bg-blue/5 border border-blue/20 rounded-xl space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <span className="font-mono text-[10px] uppercase tracking-widest text-text-dim">This Semester GPA</span>
+                                    <span className="font-bebas text-2xl text-blue">{calcSemesterGpa} <span className="text-xs text-text-dim">/ 5.00</span></span>
+                                </div>
+                                {calcMode === "cumulative" && (
+                                    <div className="flex items-center justify-between pt-2 border-t border-blue/10">
+                                        <span className="font-mono text-[10px] uppercase tracking-widest text-text-dim">Projected Cumulative CGPA</span>
+                                        <span className="font-bebas text-2xl text-green">
+                                            {calcCumulativeGpa ?? "—"} {calcCumulativeGpa && <span className="text-xs text-text-dim">/ 5.00</span>}
+                                        </span>
+                                    </div>
+                                )}
+                                {calcMode === "cumulative" && !hasValidPrev && (
+                                    <p className="font-mono text-[9px] text-text-dim">Enter your previous CGPA and total units above to see this.</p>
+                                )}
+                            </div>
+
+                            <button
+                                onClick={() => setCalcRows(courses.map(c => ({ courseId: c.id, score: "" })))}
+                                className="w-full mt-3 py-2 rounded-lg font-mono text-[10px] uppercase tracking-widest text-text-dim border border-border hover:text-red hover:border-red transition-colors"
+                            >
+                                Clear all scores
+                            </button>
                         </motion.div>
                     </div>
                 )}
